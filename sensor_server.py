@@ -6,7 +6,7 @@ import time
 
 # DEFINIEER HIER JE EIGEN SENSOR NAMEN
 SENSOR_MAPPING = {
-    "28-0b24a04fc39f": "zzA - Naar radiatoren",
+    "28-0b24a04fc39f": "A - Naar radiatoren",
     "28-0b24a0539bdb": "B - Grote tank boven",
     "28-0b24a0545ad2": "C - Grote tank midden",
     "28-0b24a0507904": "D - Grote tank onder",
