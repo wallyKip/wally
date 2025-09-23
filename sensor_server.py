@@ -16,7 +16,6 @@ SENSOR_MAPPING = {
     "28-0b24a0551b3c": "H - Warm water uitgang"
 }
 
-
 RELAY_GPIO_PIN = 5  # GPIO pin voor de relay
 RELAY_STATE_FILE = "/tmp/relay_state.txt"  # Bestand om status op te slaan
 
