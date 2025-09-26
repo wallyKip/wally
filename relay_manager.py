@@ -4,7 +4,7 @@ import time
 import gpiod
 from datetime import datetime
 
-DB_PATH = '/home/pi/wally/sensor_data.db'
+DB_PATH = '/home/kip/wally/sensor_data.db'
 RELAY_GPIO_PINS = {1: 5, 2: 6}  # relay_number: BCM GPIO pin
 CHIP_NAME = 'gpiochip0'
 

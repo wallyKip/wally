@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta
 from relay_manager import get_current_relay_status, set_relay_status, get_relay_history
 
-DB_PATH = '/home/pi/wally/sensor_data.db'
+DB_PATH = '/home/kip/wally/sensor_data.db'
 SENSOR_MAPPING = {
     "28-0b24a04fc39f": "A - Naar radiatoren",
     "28-0b24a0539bdb": "B - Grote tank boven",
