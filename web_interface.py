@@ -6,14 +6,14 @@ from datetime import datetime, timedelta
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 SENSOR_MAPPING = {
-    "28-0b24a04fc39f": "A - Ketel aanvoer",
-    "28-0b24a0539bdb": "B - Ketel retour", 
-    "28-0b24a0545ad2": "C - Tampon boven",
-    "28-0b24a0507904": "D - Tampon midden",
-    "28-0b24a0569043": "E - Tampon onder",
-    "28-0b24a050eaec": "F - Woonkamer",
-    "28-0b24a03a4d26": "G - Slaapkamer",
-    "28-0b24a0551b3c": "H - Buiten"
+    "28-0b24a04fc39f": "A - Naar radiatoren",
+    "28-0b24a0539bdb": "B - Grote tank boven",
+    "28-0b24a0545ad2": "C - Grote tank midden",
+    "28-0b24a0507904": "D - Grote tank onder",
+    "28-0b24a0569043": "E - Wally uitgang",
+    "28-0b24a050eaec": "F - Warm water",
+    "28-0b24a03a4d26": "G - Warm water ingang",
+    "28-0b24a0551b3c": "H - Warm water uitgang"
 }
 
 def get_latest_readings():
@@ -81,7 +81,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html = f"""<html>
 <head>
-    <title>Temperatuur Monitoring - Database</title>
+    <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
         table {{ border-collapse: collapse; margin: 15px 0; width: 100%; }}
@@ -91,7 +91,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     </style>
 </head>
 <body>
-    <h1>📊 Temperatuur Monitoring (Database)</h1>
+    <h1>Wally</h1>
     <p>Laatste update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
     
     <table>
