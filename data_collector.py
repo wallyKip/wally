@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+import sqlite3
+import os
+import time
+from datetime import datetime
+
+DB_PATH = '/home/kip/wally/sensor_data.db'
+SENSOR_MAPPING = {
+    "28-0b24a04fc39f": "A - Ketel aanvoer",
+    "28-0b24a0539bdb": "B - Ketel retour", 
+    "28-0b24a0545ad2": "C - Tampon boven",
+    "28-0b24a0507904": "D - Tampon midden",
+    "28-0b24a0569043": "E - Tampon onder",
+    "28-0b24a050eaec": "F - Woonkamer",
+    "28-0b24a03a4d26": "G - Slaapkamer",
+    "28-0b24a0551b3c": "H - Buiten"
+}
+
+def read_sensor_temperature(sensor_id):
+    """Lees temperatuur van een specifieke sensor"""
+    sensor_path = f"/sys/bus/w1/devices/{sensor_id}/w1_slave"
+    try:
+        with open(sensor_path, 'r') as f:
+            content = f.read()
+            if 'YES' in content:
+                temp_line = content.split('t=')[-1]
+                return float(temp_line) / 1000.0
+    except:
+        return None
+    return None
+
+def save_to_database(sensor_id, temperature):
+    """Sla meting op in database"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO sensor_readings (sensor_id, temperature) VALUES (?, ?)",
+        (sensor_id, temperature)
+    )
+    conn.commit()
+    conn.close()
+
+def collect_data():
+    """Verzamel data van alle sensoren"""
+    print(f"{datetime.now()} - Collecting sensor data...")
+    
+    for sensor_id, sensor_name in SENSOR_MAPPING.items():
+        temp = read_sensor_temperature(sensor_id)
+        if temp is not None:
+            save_to_database(sensor_id, temp)
+            print(f"  {sensor_name}: {temp:.1f}°C")
+        else:
+            print(f"  {sensor_name}: ERROR")
+
+def main():
+    print("Data Collector gestart. Druk op Ctrl+C om te stoppen.")
+    
+    while True:
+        try:
+            collect_data()
+            time.sleep(60)  # Wacht 60 seconden
+        except KeyboardInterrupt:
+            print("\nData Collector gestopt.")
+            break
+        except Exception as e:
+            print(f"Fout: {e}")
+            time.sleep(60)
+
+if __name__ == '__main__':
+    main()

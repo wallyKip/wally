@@ -1,0 +1,12 @@
+[Unit]
+Description=Sensor Data Collector
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/kip/wally/data_collector.py
+WorkingDirectory=/home/kip/wally
+Restart=always
+User=kip
+
+[Install]
+WantedBy=multi-user.target
