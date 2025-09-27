@@ -16,7 +16,9 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import sqlite3
 import json
 from datetime import datetime, timedelta
-from relay_manager import get_current_relay_status, set_relay_status
+from relay_manager import init_gpio, get_current_relay_status, set_relay_status
+
+init_gpio() 
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 SENSOR_MAPPING = {
