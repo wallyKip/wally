@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sqlite3
 import time
-import gpiod
 from datetime import datetime
+from relay_manager import read_relay_status
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 
@@ -16,20 +16,6 @@ SENSOR_MAPPING = {
     "28-0b24a03a4d26": "G - Warm water ingang",
     "28-0b24a0551b3c": "H - Warm water uitgang"
 }
-
-RELAY_PINS = {
-    1: 5,
-    2: 6
-}
-
-# Initialiseer GPIO als input om status te lezen
-chip = gpiod.Chip("gpiochip0")
-relays = {
-    relay_num: chip.get_line(pin)
-    for relay_num, pin in RELAY_PINS.items()
-}
-for line in relays.values():
-    line.request(consumer="sensor_logger", type=gpiod.LINE_REQ_DIR_IN)
 
 def read_sensor_temperature(sensor_id):
     """Lees temperatuur van een specifieke sensor"""
@@ -56,17 +42,17 @@ def save_temperature(sensor_id, temperature):
     conn.close()
 
 def log_relay_status():
-    """Lees GPIO status van de relais en sla op in de database"""
+    """Lees status van relais via relay_manager en sla op in database"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    for relay_num, line in relays.items():
+    for relay_num in [1, 2]:
         try:
-            status = line.get_value()
+            status = read_relay_status(relay_num)
             c.execute('''
                 INSERT INTO relay_status (relay_number, status, reason)
                 VALUES (?, ?, ?)
-            ''', (relay_num, status, "sensor_logger"))
+            ''', (relay_num, status, "data_collector"))
             print(f"  Relay {relay_num}: {'AAN' if status else 'UIT'}")
         except Exception as e:
             print(f"  Relay {relay_num}: FOUT ({e})")
@@ -78,7 +64,6 @@ def collect_data():
     """Verzamel data van sensoren en relais"""
     print(f"{datetime.now()} - Data verzamelen...")
 
-    # Temperatuur
     for sensor_id, sensor_name in SENSOR_MAPPING.items():
         temp = read_sensor_temperature(sensor_id)
         if temp is not None:
@@ -87,12 +72,11 @@ def collect_data():
         else:
             print(f"  {sensor_name}: ERROR")
 
-    # Relays
+    # Log relay status
     log_relay_status()
 
 def main():
     print("Sensor Logger gestart. Druk op Ctrl+C om te stoppen.")
-
     while True:
         try:
             collect_data()

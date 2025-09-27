@@ -7,51 +7,40 @@ from datetime import datetime
 DB_PATH = '/home/kip/wally/sensor_data.db'
 CHIP_NAME = 'gpiochip0'
 
-# BCM GPIO pinnen
 RELAY1_GPIO = 5
 RELAY2_GPIO = 6
 
-# Lazy-init variabelen
-chip = None
-relay1_line = None
-relay2_line = None
+# GPIO state
+_chip = None
+_relay_lines = {}
 
 def _ensure_gpio_initialized():
-    """Initialiseer GPIO lijnen als dat nog niet is gebeurd"""
-    global chip, relay1_line, relay2_line
+    global _chip, _relay_lines
 
-    if chip is None:
-        chip = gpiod.Chip(CHIP_NAME)
-    if relay1_line is None:
-        relay1_line = chip.get_line(RELAY1_GPIO)
-        relay1_line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_OUT)
-    if relay2_line is None:
-        relay2_line = chip.get_line(RELAY2_GPIO)
-        relay2_line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_OUT)
+    if _chip is None:
+        _chip = gpiod.Chip(CHIP_NAME)
+    
+    if not _relay_lines:
+        for num in [RELAY1_GPIO, RELAY2_GPIO]:
+            line = _chip.get_line(num)
+            line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_OUT)
+            _relay_lines[num] = line
 
 def set_relay_status(relay_number, status, reason="manual"):
     """Zet relay aan of uit en log naar database"""
     _ensure_gpio_initialized()
 
-    line = relay1_line if relay_number == 1 else relay2_line if relay_number == 2 else None
-    if line is None:
+    gpio_number = RELAY1_GPIO if relay_number == 1 else RELAY2_GPIO if relay_number == 2 else None
+    if gpio_number is None or gpio_number not in _relay_lines:
         print(f"Relay {relay_number} niet beschikbaar")
         return False
 
     try:
+        line = _relay_lines[gpio_number]
         line.set_value(1 if status else 0)
 
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-
-        # Update current status
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS current_relay_status (
-                relay_number INTEGER PRIMARY KEY,
-                status INTEGER NOT NULL,
-                last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
 
         c.execute('''
             INSERT OR REPLACE INTO current_relay_status 
@@ -59,21 +48,10 @@ def set_relay_status(relay_number, status, reason="manual"):
             VALUES (?, ?, CURRENT_TIMESTAMP)
         ''', (relay_number, status))
 
-        # Voeg toe aan history
         c.execute('''
-            CREATE TABLE IF NOT EXISTS relay_status (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                relay_number INTEGER NOT NULL,
-                status INTEGER NOT NULL,
-                reason TEXT
-            )
-        ''')
-
-        c.execute(
-            "INSERT INTO relay_status (relay_number, status, reason) VALUES (?, ?, ?)",
-            (relay_number, status, reason)
-        )
+            INSERT INTO relay_status (relay_number, status, reason) 
+            VALUES (?, ?, ?)
+        ''', (relay_number, status, reason))
 
         conn.commit()
         conn.close()
@@ -88,7 +66,8 @@ def read_relay_status(relay_number):
     """Lees huidige GPIO status"""
     _ensure_gpio_initialized()
 
-    line = relay1_line if relay_number == 1 else relay2_line if relay_number == 2 else None
+    gpio_number = RELAY1_GPIO if relay_number == 1 else RELAY2_GPIO if relay_number == 2 else None
+    line = _relay_lines.get(gpio_number)
     return line.get_value() if line else None
 
 def get_current_relay_status():
