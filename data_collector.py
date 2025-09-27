@@ -2,7 +2,7 @@
 import sqlite3
 import time
 from datetime import datetime
-from relay_manager import read_relay_status
+from relay_manager import read_relay_status_oneshot
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 
@@ -48,7 +48,7 @@ def log_relay_status():
 
     for relay_num in [1, 2]:
         try:
-            status = read_relay_status(relay_num)
+            status = read_relay_status_oneshot(relay_num)
             c.execute('''
                 INSERT INTO relay_status (relay_number, status, reason)
                 VALUES (?, ?, ?)

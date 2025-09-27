@@ -14,6 +14,23 @@ RELAY_PINS = {
 chip = gpiod.Chip(CHIP_NAME)
 relay_lines = {}
 
+def read_relay_status_oneshot(relay_number):
+    """Lees GPIO status van de opgegeven relay zonder lijnen vast te houden"""
+    pin = RELAY_PINS.get(relay_number)
+    if pin is None:
+        return None
+    try:
+        chip = gpiod.Chip(CHIP_NAME)
+        line = chip.get_line(pin)
+        line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_IN)
+        value = line.get_value()
+        line.release()
+        chip.close()
+        return value
+    except Exception as e:
+        print(f"Fout bij lezen van relay {relay_number} (oneshot): {e}")
+        return None
+
 def init_gpio():
     """Initialiseer GPIO-lijnen indien nog niet gedaan"""
     global relay_lines
