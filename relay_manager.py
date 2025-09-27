@@ -45,7 +45,7 @@ def init_gpio():
         except OSError as e:
             print(f"GPIO {pin} voor Relay {relay_num} al bezet: {e}")
 
-init_gpio()  # automatisch bij import
+#init_gpio()  # automatisch bij import
 
 def set_relay_status(relay_number, status, reason="manual"):
     """Zet relay aan of uit en log naar database"""
