@@ -31,8 +31,8 @@ SENSOR_MAPPING = {
 }
 
 RELAY_NAMES = {
-    1: "Pomp CV",
-    2: "Extra Relay"
+    1: "Radiatoren",
+    2: "Warm Water"
 }
 
 def get_latest_readings():
@@ -82,6 +82,29 @@ def get_sensor_history(sensor_id, hours=24):
     
     return [{'timestamp': ts, 'temperature': temp} for ts, temp in results]
 
+def get_relay_history(relay_number, hours=24):
+    """Haal historische data op voor een specifieke relay"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    since_time = datetime.now() - timedelta(hours=hours)
+
+    c.execute('''
+        SELECT timestamp, status, reason 
+        FROM relay_status 
+        WHERE relay_number = ? AND timestamp > ?
+        ORDER BY timestamp DESC
+    ''', (relay_number, since_time))
+
+    results = c.fetchall()
+    conn.close()
+
+    return [
+        {'timestamp': ts, 'status': status, 'reason': reason}
+        for ts, status, reason in results
+    ]
+
+
 class SensorHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
@@ -94,6 +117,8 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.serve_api_latest()
         elif self.path.startswith('/api/history/'):
             self.serve_api_history()
+        elif self.path.startswith('/api/relay_history/'):
+            self.serve_api_relay_history()
         else:
             self.send_error(404)
     
@@ -224,6 +249,18 @@ class SensorHandler(BaseHTTPRequestHandler):
             sensor_id = self.path.split('/')[-1]
             history = get_sensor_history(sensor_id, hours=24)
             
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(history, indent=2).encode())
+        except:
+            self.send_error(400)
+
+    def serve_api_relay_history(self):
+        try:
+            relay_number = int(self.path.split('/')[-1])
+            history = get_relay_history(relay_number, hours=24)
+
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()

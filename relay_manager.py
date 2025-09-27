@@ -5,37 +5,31 @@ import gpiod
 from datetime import datetime
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
-RELAY_GPIO_PINS = {1: 5, 2: 6}  # relay_number: BCM GPIO pin
 CHIP_NAME = 'gpiochip0'
 
-# Initialiseer GPIO
-chip = gpiod.Chip(CHIP_NAME)
-relay_lines = {
-    relay_num: chip.get_line(gpio_pin)
-    for relay_num, gpio_pin in RELAY_GPIO_PINS.items()
-}
-for line in relay_lines.values():
-    line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_OUT)
+# BCM GPIO pinnen
+RELAY1_GPIO = 5
+RELAY2_GPIO = 6
 
-def read_relay_status(relay_number):
-    """Lees huidige status van een relay via GPIO"""
-    line = relay_lines.get(relay_number)
-    if not line:
-        return None
-    return line.get_value()
+# Initialiseer GPIO lijnen
+chip = gpiod.Chip(CHIP_NAME)
+relay1_line = chip.get_line(RELAY1_GPIO)
+relay2_line = chip.get_line(RELAY2_GPIO)
+
+# Vraag de lijnen aan als output
+relay1_line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_OUT)
+relay2_line.request(consumer="relay_manager", type=gpiod.LINE_REQ_DIR_OUT)
 
 def set_relay_status(relay_number, status, reason="manual"):
-    """Zet relay status en sla op in database"""
-    line = relay_lines.get(relay_number)
-    if not line:
-        print(f"Relay {relay_number} niet gevonden.")
+    """Zet relay aan of uit en log naar database"""
+    line = relay1_line if relay_number == 1 else relay2_line if relay_number == 2 else None
+    if line is None:
+        print(f"Relay {relay_number} niet beschikbaar")
         return False
 
     try:
-        # Zet GPIO waarde
         line.set_value(1 if status else 0)
 
-        # Sla op in database
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
 
@@ -57,19 +51,24 @@ def set_relay_status(relay_number, status, reason="manual"):
 
         print(f"Relay {relay_number} {'AAN' if status else 'UIT'} - {reason}")
         return True
-
     except Exception as e:
-        print(f"Fout bij instellen van relay {relay_number}: {e}")
+        print(f"Fout bij relay {relay_number}: {e}")
         return False
 
+def read_relay_status(relay_number):
+    """Lees huidige GPIO status"""
+    line = relay1_line if relay_number == 1 else relay2_line if relay_number == 2 else None
+    return line.get_value() if line else None
+
 def get_current_relay_status():
-    """Haal huidige status van alle relays op uit database + sync met GPIO"""
+    """Lees status van beide relays uit DB + sync met GPIO"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     c.execute('''
         SELECT relay_number, status, last_updated 
         FROM current_relay_status 
+        WHERE relay_number IN (1, 2)
         ORDER BY relay_number
     ''')
 
@@ -77,10 +76,11 @@ def get_current_relay_status():
     conn.close()
 
     status_dict = {}
+
     for relay_num, status, last_updated in results:
         gpio_status = read_relay_status(relay_num)
         if gpio_status is not None and gpio_status != status:
-            # Sync verschil corrigeren
+            # Sync mismatch → corrigeer database
             set_relay_status(relay_num, gpio_status, "sync_correction")
             status = gpio_status
 
@@ -93,7 +93,7 @@ def get_current_relay_status():
     return status_dict
 
 def get_relay_history(relay_number, hours=24):
-    """Haal historische data op voor een relay"""
+    """Haal relay geschiedenis op"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
@@ -108,20 +108,16 @@ def get_relay_history(relay_number, hours=24):
     results = c.fetchall()
     conn.close()
 
-    return [{'timestamp': ts, 'status': status, 'reason': reason}
-            for ts, status, reason in results]
+    return [{'timestamp': ts, 'status': status, 'reason': reason} for ts, status, reason in results]
 
 if __name__ == '__main__':
-    # Test de relays
+    # Test
     print("Relays testen...")
     for relay_num in [1, 2]:
         print(f"Relay {relay_num} status voor test: {read_relay_status(relay_num)}")
-
-        # Toggle test
         set_relay_status(relay_num, 1, "test")
         time.sleep(1)
         set_relay_status(relay_num, 0, "test")
-
         print(f"Relay {relay_num} status na test: {read_relay_status(relay_num)}")
 
     print("Huidige status uit database:", get_current_relay_status())
