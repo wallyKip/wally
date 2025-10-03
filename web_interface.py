@@ -163,7 +163,6 @@ class SensorHandler(BaseHTTPRequestHandler):
             <h1 style="background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;display:inline-block;padding:8px;">
                 Naar radiatoren  &#8594; {temp_a if temp_a != 'N/A' else 'N/A'} &deg;C {warning_e}
             </h1> 
-            <table style="width:auto;">
             """
         
         # Sensor B - Grote tank boven
@@ -177,8 +176,9 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
+        <table style="width:auto;">
         <tr>
-            <td>Grote tank boven</td>
+            <td rowspan="3">Grote tank boven</td>
             <td><strong>{temp_b if temp_b != 'N/A' else 'N/A'} &deg;C</strong>{warning_b}</td>
         </tr>"""
         
