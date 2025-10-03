@@ -230,7 +230,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += f"""
         <tr>
             <td rowspan="3">Warm water</td>
-            <td><span>in </span><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
+            <td><span style="font-weight:normal;font-size:1em;">in </span><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
         </tr>"""
 
         # Sensor F - Warm water
