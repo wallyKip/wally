@@ -133,7 +133,10 @@ class SensorHandler(BaseHTTPRequestHandler):
         .timestamp {{ color: #666; font-size: 0.9em; }}
     </style>
 </head>
-<body>""" 
+<body>
+<table style="width:auto;"><tr><tr>
+
+""" 
     
         # Sensor E - Wally uitgang
         sensor_e_data = sensor_data.get("Wally uitgang", {})
@@ -230,7 +233,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += f"""
         <tr>
             <td rowspan="3">Warm water</td>
-            <td><span style="font-weight:normal;font-size:1em;">in </span><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
+            <td><span style="font-weight:normal;font-size:0.5em;">in </span><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
         </tr>"""
 
         # Sensor F - Warm water
@@ -260,7 +263,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td>uit <strong>{temp_h if temp_h != 'N/A' else 'N/A'} &deg;C</strong>{warning_h}</td>
+            <td><span style="font-weight:normal;font-size:0.5em;">uit </span><strong>{temp_h if temp_h != 'N/A' else 'N/A'} &deg;C</strong>{warning_h}</td>
         </tr>"""
         
         html += """
@@ -309,6 +312,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     
     <p><a href="/api/latest">JSON API</a> | <a href="/api/relay_status">Relay Status API</a></p>
     <p><em>Data wordt elke minuut verzameld. Pagina vernieuwt niet automatisch.</em></p>
+    <table>
 </body>
 </html>"""
         
