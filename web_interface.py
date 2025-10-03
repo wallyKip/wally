@@ -135,13 +135,15 @@ class SensorHandler(BaseHTTPRequestHandler):
 </head>
 <body>""" 
     
+        warning_threshold = 2 + (10 / 60)  # 2 uur en 10 minuten
+        
         # Sensor E - Wally uitgang
         sensor_e_data = sensor_data.get("Wally uitgang", {})
         temp_e = sensor_e_data.get('temperature', 'N/A')
         timestamp_e = sensor_e_data.get('timestamp', '')
         if timestamp_e:
             time_diff_e = (datetime.now() - datetime.strptime(timestamp_e, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_e > 2.083 else ""
+            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_e > warning_threshold else ""
         else:
             warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -155,7 +157,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_a = sensor_a_data.get('timestamp', '')
         if timestamp_a:
             time_diff_a = (datetime.now() - datetime.strptime(timestamp_a, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_a > 2.083 else ""
+            warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_a > warning_threshold else ""
         else:
             warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -171,7 +173,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_b = sensor_b_data.get('timestamp', '')
         if timestamp_b:
             time_diff_b = (datetime.now() - datetime.strptime(timestamp_b, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b > 2.083 else ""
+            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b > warning_threshold else ""
         else:
             warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -188,7 +190,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_c = sensor_c_data.get('timestamp', '')
         if timestamp_c:
             time_diff_c = (datetime.now() - datetime.strptime(timestamp_c, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_c = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_c > 2.083 else ""
+            warning_c = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_c > warning_threshold else ""
         else:
             warning_c = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -203,7 +205,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_d = sensor_d_data.get('timestamp', '')
         if timestamp_d:
             time_diff_d = (datetime.now() - datetime.strptime(timestamp_d, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_d = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_d > 2.083 else ""
+            warning_d = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_d > warning_threshold else ""
         else:
             warning_d = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -221,7 +223,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_g = sensor_g_data.get('timestamp', '')
         if timestamp_g:
             time_diff_g = (datetime.now() - datetime.strptime(timestamp_g, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_g = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_g > 2.083 else ""
+            warning_g = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_g > warning_threshold else ""
         else:
             warning_g = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -237,7 +239,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_f = sensor_f_data.get('timestamp', '')
         if timestamp_f:
             time_diff_f = (datetime.now() - datetime.strptime(timestamp_f, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_f > 2.083 else ""
+            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_f > warning_threshold else ""
         else:
             warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -252,7 +254,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_h = sensor_h_data.get('timestamp', '')
         if timestamp_h:
             time_diff_h = (datetime.now() - datetime.strptime(timestamp_h, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_h = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_h > 2.083 else ""
+            warning_h = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_h > warning_threshold else ""
         else:
             warning_h = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
