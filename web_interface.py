@@ -138,11 +138,15 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr><th>Sensor</th><th>Temperatuur</th><th>Laatste meting</th></tr>"""
         
         for sensor_name, data in sensor_data.items():
+            last_updated_1 = data['timestamp']
+            timestamp_1 = datetime.strptime(last_updated_1, '%Y-%m-%d %H:%M:%S')
+            time_diff_1 = (datetime.now() - timestamp_1).total_seconds() / 3600  # uren
+            warning_1 = " ⚠️" if time_diff_1 > 2.083 else "bla"  # 2u5min = 2.083 uur
             html += f"""
         <tr>
             <td>{sensor_name}</td>
             <td><strong>{data['temperature']:.1f} °C</strong></td>
-            <td class="timestamp">{data['timestamp']}</td>
+            <td class="timestamp">{warning_1}</td>
         </tr>"""
         
         html += """
@@ -151,18 +155,12 @@ class SensorHandler(BaseHTTPRequestHandler):
     <h2>Pompen</h2>
     <table>
         <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>"""
-        
-        last_updated_1 = relay_status[1]['last_updated']
-        timestamp_1 = datetime.strptime(last_updated_1, '%Y-%m-%d %H:%M:%S')
-        time_diff_1 = (datetime.now() - timestamp_1).total_seconds() / 3600  # uren
-        warning_1 = " ⚠️" if time_diff_1 > 2.083 else "bla"  # 2u5min = 2.083 uur
-
         # Relay 1 - Radiatoren
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
             <td><strong>Warm Water</strong></td>
             <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
-            <td class="timestamp">{relay_status[1]['last_updated']}{warning_1}kjgkjgh</td>
+            <td class="timestamp">{relay_status[1]['last_updated']}</td>
             <td>
                 <button class="relay-btn" onclick="setRelay(1, 1)">AAN</button>
                 <button class="relay-btn" onclick="setRelay(1, 0)">UIT</button>
