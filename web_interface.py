@@ -123,7 +123,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 4em; }}
         th {{ background-color: #f2f2f2; }}
         .relay-on {{ background-color: #d4edda; }}
         .relay-off {{ background-color: #f8d7da; }}
@@ -214,9 +214,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <br>
         <table>"""
         
-
-        
-
         
         # Sensor G - Warm water ingang
         sensor_g_data = sensor_data.get("Warm water ingang", {})
