@@ -264,7 +264,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += """
     </table>
     
-    <h1 style="align:center;">Pompen</h1>
+    <br><br><h1 style="align:center;">Pompen</h1><br>
     <table>
         <tr>"""
         # Relay 1 - Radiatoren
