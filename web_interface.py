@@ -167,7 +167,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
             <td><strong>Radiatoren</strong></td>
-            <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
+            <td>{'UIT' if relay_status[1]['status'] else 'AAN'}</td>
             <td class="timestamp">{relay_status[1]['last_updated']}</td>
             <td>
                 <button class="relay-btn" onclick="setRelay(1, 1)">AAN</button>
