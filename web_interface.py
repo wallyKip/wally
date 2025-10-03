@@ -1,16 +1,3 @@
-
-#DB_PATH = '/home/kip/wally/sensor_data.db'
-#SENSOR_MAPPING = {
-#    "28-0b24a04fc39f": "A - Naar radiatoren",
-#    "28-0b24a0539bdb": "B - Grote tank boven",
-#    "28-0b24a0545ad2": "C - Grote tank midden",
-#    "28-0b24a0507904": "D - Grote tank onder",
-#    "28-0b24a0569043": "E - Wally uitgang",
-#    "28-0b24a050eaec": "F - Warm water",
-#    "28-0b24a03a4d26": "G - Warm water ingang",
-#    "28-0b24a0551b3c": "H - Warm water uitgang"
-#}
-
 #!/usr/bin/env python3
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import sqlite3
@@ -163,18 +150,22 @@ class SensorHandler(BaseHTTPRequestHandler):
     
     <h2>Pompen</h2>
     <table>
-        <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>
+        <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>"""
         
+        # Relay 1 - Radiatoren
+        html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
             <td><strong>Radiatoren</strong></td>
-            <td>{'UIT' if relay_status[1]['status'] else 'AAN'}</td>
+            <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
             <td class="timestamp">{relay_status[1]['last_updated']}</td>
             <td>
                 <button class="relay-btn" onclick="setRelay(1, 1)">AAN</button>
                 <button class="relay-btn" onclick="setRelay(1, 0)">UIT</button>
             </td>
-        </tr>
+        </tr>"""
         
+        # Relay 2 - Warm Water
+        html += f"""
         <tr class="{'relay-on' if relay_status[2]['status'] else 'relay-off'}">
             <td><strong>Warm Water</strong></td>
             <td>{'AAN' if relay_status[2]['status'] else 'UIT'}</td>
@@ -183,7 +174,9 @@ class SensorHandler(BaseHTTPRequestHandler):
                 <button class="relay-btn" onclick="setRelay(2, 1)">AAN</button>
                 <button class="relay-btn" onclick="setRelay(2, 0)">UIT</button>
             </td>
-        </tr>
+        </tr>"""
+        
+        html += """
     </table>
     
     <script>
