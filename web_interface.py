@@ -27,7 +27,7 @@ RELAY_NAMES = {
 def get_latest_readings():
     """Haal de laatste meting voor elke sensor op"""
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
     
     c.execute('''
@@ -56,7 +56,7 @@ def get_latest_readings():
 def get_sensor_history(sensor_id, hours=24):
     """Haal historische data op voor een sensor"""
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
     
     since_time = datetime.now() - timedelta(hours=hours)
@@ -76,7 +76,7 @@ def get_sensor_history(sensor_id, hours=24):
 def get_relay_history(relay_number, hours=24):
     """Haal historische data op voor een specifieke relay"""
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
 
     since_time = datetime.now() - timedelta(hours=hours)
@@ -133,10 +133,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     </style>
 </head>
 <body>
-    <h1>Wally </h1>
-    <p>Laatste update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-    
-    <h2>🌡️ Temperatuur Sensoren</h2>
+    <h1>Wally </h1>    
     <table>
         <tr><th>Sensor</th><th>Temperatuur</th><th>Laatste meting</th></tr>"""
         
@@ -155,12 +152,17 @@ class SensorHandler(BaseHTTPRequestHandler):
     <table>
         <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>"""
         
+        last_updated_1 = relay_status[1]['last_updated']
+        timestamp_1 = datetime.strptime(last_updated_1, '%Y-%m-%d %H:%M:%S')
+        time_diff_1 = (datetime.now() - timestamp_1).total_seconds() / 3600  # uren
+        warning_1 = " ⚠️" if time_diff_1 > 2.083 else ""  # 2u5min = 2.083 uur
+
         # Relay 1 - Radiatoren
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
             <td><strong>Warm Water</strong></td>
             <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
-            <td class="timestamp">{relay_status[1]['last_updated']}</td>
+            <td class="timestamp">{relay_status[1]['last_updated']}{warning_1}</td>
             <td>
                 <button class="relay-btn" onclick="setRelay(1, 1)">AAN</button>
                 <button class="relay-btn" onclick="setRelay(1, 0)">UIT</button>

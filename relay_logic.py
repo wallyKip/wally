@@ -16,7 +16,7 @@ SWITCH_INTERVAL = timedelta(minutes=5)  # Minimaal 5 minuten tussen schakelingen
 
 def get_latest_temp(sensor_id):
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
 
     c.execute('''
@@ -37,7 +37,7 @@ def get_latest_temp(sensor_id):
 
 def get_last_relay_switch_time(relay_num):
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
 
     c.execute('''

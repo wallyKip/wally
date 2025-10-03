@@ -33,7 +33,7 @@ def read_sensor_temperature(sensor_id):
 def save_temperature(sensor_id, temperature):
     """Sla temperatuurmeting op in de database"""
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
     c.execute(
         "INSERT INTO sensor_readings (sensor_id, temperature) VALUES (?, ?)",
@@ -45,7 +45,7 @@ def save_temperature(sensor_id, temperature):
 def log_relay_status():
     """Lees status van relais via relay_manager en sla op in database"""
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
+     
     c = conn.cursor()
 
     for relay_num in [1, 2]:
