@@ -145,9 +145,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <h1 style="background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;display:inline-block;padding:8px;">Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
-        <strong></strong>
         
-        <table style="width:auto;">
         """
         
         # Sensor A - Naar radiatoren
@@ -161,10 +159,11 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
-        <tr>
-            <td>Naar radiatoren</td>
-            <td><strong>{temp_a if temp_a != 'N/A' else 'N/A'} &deg;C</strong>{warning_a}</td>
-        </tr>"""
+            <h1 style="background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;display:inline-block;padding:8px;">
+                Naar radiatoren  &#8594; {temp_a if temp_a != 'N/A' else 'N/A'} &deg;C {warning_e}
+            </h1> 
+            <table style="width:auto;">
+            """
         
         # Sensor B - Grote tank boven
         sensor_b_data = sensor_data.get("Grote tank boven", {})
