@@ -123,7 +123,8 @@ class SensorHandler(BaseHTTPRequestHandler):
     <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 4em; }}
+        h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;display:inline-block;padding:8px;font-size: 2em; }}
+        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 2em; }}
         th {{ background-color: #f2f2f2; }}
         .relay-on {{ background-color: #d4edda; }}
         .relay-off {{ background-color: #f8d7da; }}
@@ -144,7 +145,7 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
-        <h1 style="background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;display:inline-block;padding:8px;">Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
+        <h1>Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
         
         """
         
@@ -160,7 +161,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
             <br>
-            <h1 style="background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;display:inline-block;padding:8px;">
+            <h1>
                 Naar radiatoren  &#8594; {temp_a if temp_a != 'N/A' else 'N/A'} &deg;C {warning_e}
             </h1> 
             """
