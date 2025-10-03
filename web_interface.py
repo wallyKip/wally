@@ -266,18 +266,18 @@ class SensorHandler(BaseHTTPRequestHandler):
     
     <h2>Pompen</h2>
     <table>
-        <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>"""
+        <tr><th>Relay</th><th>Status</th>"""
         # Relay 1 - Radiatoren
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
-            <td><button class="relay-btn" onclick="setRelay(1, {1 if not relay_status[1]['status'] else 0})"><strong>Warm Water</strong></button></td>
+            <td><div onclick="setRelay(1, {1 if not relay_status[1]['status'] else 0})">Warm Water</div></td>
             <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
         </tr>"""
         
         # Relay 2 - Warm Water
         html += f"""
         <tr class="{'relay-on' if relay_status[2]['status'] else 'relay-off'}">
-            <td><button class="relay-btn" onclick="setRelay(2, {1 if not relay_status[2]['status'] else 0})"><strong>Radiatoren</strong></button></td>
+            <td><div onclick="setRelay(2, {1 if not relay_status[2]['status'] else 0})">Radiatoren</div></td>
             <td>{'AAN' if relay_status[2]['status'] else 'UIT'}</td>
         </tr>"""
         
