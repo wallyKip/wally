@@ -383,6 +383,6 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.send_error(400)
 
 if __name__ == '__main__':
-    print("Web Interface gestart op http://0.0.0.0:8000")
-    httpd = HTTPServer(('', 8000), SensorHandler)
+    print("Web Interface gestart op http://0.0.0.0:80")
+    httpd = HTTPServer(('', 80), SensorHandler)
     httpd.serve_forever()
