@@ -178,7 +178,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += f"""
         <table style="width:auto;">
         <tr>
-            <td rowspan="3">Grote tank boven</td>
+            <td rowspan="3">Grote tank</td>
             <td><strong>{temp_b if temp_b != 'N/A' else 'N/A'} &deg;C</strong>{warning_b}</td>
         </tr>"""
         
@@ -194,7 +194,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td>Grote tank midden</td>
+            <td></td>
             <td><strong>{temp_c if temp_c != 'N/A' else 'N/A'} &deg;C</strong>{warning_c}</td>
         </tr>"""
         
@@ -210,7 +210,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td>Grote tank onder</td>
+            <td></td>
             <td><strong>{temp_d if temp_d != 'N/A' else 'N/A'} &deg;C</strong>{warning_d}</td>
         </tr></table>
         
