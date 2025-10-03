@@ -144,7 +144,7 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
-        <h1 style="background-color:#8b0000;width:auto;">Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
+        <h1 style="background-color:#8b0000;display:inline-block;padding:8px;">Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
         <strong></strong>
         
         <table style="width:auto;">
