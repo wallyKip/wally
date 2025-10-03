@@ -141,7 +141,7 @@ class SensorHandler(BaseHTTPRequestHandler):
             last_updated_1 = data['timestamp']
             timestamp_1 = datetime.strptime(last_updated_1, '%Y-%m-%d %H:%M:%S')
             time_diff_1 = (datetime.now() - timestamp_1).total_seconds() / 3600  # uren
-            warning_1 = " &#9888;" if time_diff_1 < 2.083 else ""  # 2u5min = 2.083 uur
+            warning_1 = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_1 < 2.083 else ""  # 2u5min = 2.083 uur
             html += f"""
         <tr>
             <td>{sensor_name}</td>
