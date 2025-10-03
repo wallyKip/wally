@@ -123,8 +123,8 @@ class SensorHandler(BaseHTTPRequestHandler):
     <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;display:inline-block;box-shadow: 2px 2px;padding:8px;font-size: 8em; }}
-        table {{ width:100%;background-color:#d2f8d2;order:1px;border-radius: 5px;box-shadow: 2px 2px; }}
+        h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;margin:4px;padding:8px;font-size: 8em; }}
+        table {{ width:100%;background-color:#d2f8d2;order:1px;border-radius: 5px;box-shadow: 2px 2px;margin:4px; }}
         th, td {{ background-color:#d2f8d2; border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 8em; }}
         th {{ background-color: #f2f2f2; }}
         .relay-on {{ background-color: #d4edda; }}
@@ -133,10 +133,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         .timestamp {{ color: #666; font-size: 0.9em; }}
     </style>
 </head>
-<body>
-<table style="width:200px;"><tr><tr>
-
-""" 
+<body>""" 
     
         # Sensor E - Wally uitgang
         sensor_e_data = sensor_data.get("Wally uitgang", {})
