@@ -270,25 +270,15 @@ class SensorHandler(BaseHTTPRequestHandler):
         # Relay 1 - Radiatoren
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
-            <td><strong>Warm Water</strong></td>
+            <td><button class="relay-btn" onclick="setRelay(2, {1 if not relay_status[1]['status'] else 0})"><strong>Warm Water</strong></button></td>
             <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
-            <td class="timestamp">{relay_status[1]['last_updated']}</td>
-            <td>
-                <button class="relay-btn" onclick="setRelay(1, 1)">AAN</button>
-                <button class="relay-btn" onclick="setRelay(1, 0)">UIT</button>
-            </td>
         </tr>"""
         
         # Relay 2 - Warm Water
         html += f"""
-        <tr class="{'relay-off' if relay_status[2]['status'] else 'relay-on'}">
-            <td><strong>Radiatoren</strong></td>
-            <td>{'UIT' if relay_status[2]['status'] else 'AAN'}</td>
-            <td class="timestamp">{relay_status[2]['last_updated']}</td>
-            <td>
-                <button class="relay-btn" onclick="setRelay(2, 0)">AAN</button>
-                <button class="relay-btn" onclick="setRelay(2, 1)">UIT</button>
-            </td>
+        <tr class="{'relay-on' if relay_status[2]['status'] else 'relay-off'}">
+            <td><button class="relay-btn" onclick="setRelay(2, {1 if not relay_status[2]['status'] else 0})"><strong>Radiatoren</strong></button></td>
+            <td>{'AAN' if relay_status[2]['status'] else 'UIT'}</td>
         </tr>"""
         
         html += """
