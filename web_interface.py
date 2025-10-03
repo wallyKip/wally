@@ -136,7 +136,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     <h1>Wally </h1>    
     <h2>🌡️ Temperatuur Sensoren</h2>
     <table>
-        <tr><th>Sensor</th><th>Temperatuur</th><th>Laatste meting</th></tr>"""
+        <tr><th>Sensor</th><th>Temperatuur</th></tr>"""
         
         # Sensor A - Naar radiatoren
         sensor_a_data = sensor_data.get("Naar radiatoren", {})
@@ -152,7 +152,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Naar radiatoren</td>
             <td><strong>{temp_a if temp_a != 'N/A' else 'N/A'} &deg;C</strong>{warning_a}</td>
-            <td class="timestamp">{timestamp_a if timestamp_a else 'Geen data'}</td>
         </tr>"""
         
         # Sensor B - Grote tank boven
@@ -161,7 +160,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_b = sensor_b_data.get('timestamp', '')
         if timestamp_b:
             time_diff_b = (datetime.now() - datetime.strptime(timestamp_b, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b < 2.083 else ""
+            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b > 2.083 else ""
         else:
             warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
@@ -169,7 +168,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Grote tank boven</td>
             <td><strong>{temp_b if temp_b != 'N/A' else 'N/A'} &deg;C</strong>{warning_b}</td>
-            <td class="timestamp">{timestamp_b if timestamp_b else 'Geen data'}</td>
         </tr>"""
         
         # Sensor C - Grote tank midden
@@ -186,7 +184,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Grote tank midden</td>
             <td><strong>{temp_c if temp_c != 'N/A' else 'N/A'} &deg;C</strong>{warning_c}</td>
-            <td class="timestamp">{timestamp_c if timestamp_c else 'Geen data'}</td>
         </tr>"""
         
         # Sensor D - Grote tank onder
@@ -203,7 +200,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Grote tank onder</td>
             <td><strong>{temp_d if temp_d != 'N/A' else 'N/A'} &deg;C</strong>{warning_d}</td>
-            <td class="timestamp">{timestamp_d if timestamp_d else 'Geen data'}</td>
         </tr>"""
         
         # Sensor E - Wally uitgang
@@ -220,7 +216,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Wally uitgang</td>
             <td><strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}</td>
-            <td class="timestamp">{timestamp_e if timestamp_e else 'Geen data'}</td>
         </tr>"""
         
         # Sensor F - Warm water
@@ -237,7 +232,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Warm water</td>
             <td><strong>{temp_f if temp_f != 'N/A' else 'N/A'} &deg;C</strong>{warning_f}</td>
-            <td class="timestamp">{timestamp_f if timestamp_f else 'Geen data'}</td>
         </tr>"""
         
         # Sensor G - Warm water ingang
@@ -254,7 +248,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Warm water ingang</td>
             <td><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
-            <td class="timestamp">{timestamp_g if timestamp_g else 'Geen data'}</td>
         </tr>"""
         
         # Sensor H - Warm water uitgang
@@ -271,7 +264,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Warm water uitgang</td>
             <td><strong>{temp_h if temp_h != 'N/A' else 'N/A'} &deg;C</strong>{warning_h}</td>
-            <td class="timestamp">{timestamp_h if timestamp_h else 'Geen data'}</td>
         </tr>"""
         
         html += """
