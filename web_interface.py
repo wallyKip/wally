@@ -278,7 +278,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += f"""
         <tr class="{'relay-on' if relay_status[2]['status'] else 'relay-off'}">
             <td><div onclick="setRelay(2, {1 if not relay_status[2]['status'] else 0})">Radiatoren</div></td>
-            <td>{'<span style="color: green; font-weight: bold;">&#10004;</span>' if not relay_status[1]['status'] else '<span style="color: red; font-weight: bold;">&#10008;</span>'}</td>
+            <td>{'<span style="color: green; font-weight: bold;">&#10004;</span>' if not relay_status[2]['status'] else '<span style="color: red; font-weight: bold;">&#10008;</span>'}</td>
         </tr>"""
         
         html += """

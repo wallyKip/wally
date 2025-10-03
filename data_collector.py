@@ -83,7 +83,7 @@ def main():
     while True:
         try:
             collect_data()
-            time.sleep(60)  # Elke minuut
+            time.sleep(300)  # Elke minuut
         except KeyboardInterrupt:
             print("\nGestopt door gebruiker.")
             break
