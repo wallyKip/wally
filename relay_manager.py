@@ -58,6 +58,7 @@ def set_relay_status(relay_number, status, reason="manual"):
         line.set_value(1 if status else 0)
 
         conn = sqlite3.connect(DB_PATH)
+        conn.execute("PRAGMA timezone = 'Europe/Brussels'")
         c = conn.cursor()
 
         # Update current status
@@ -96,6 +97,7 @@ def read_relay_status(relay_number):
 def get_current_relay_status():
     """Haal huidige status van relays uit database + sync met GPIO"""
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
     c = conn.cursor()
     c.execute('''
         SELECT relay_number, status, last_updated 
@@ -125,6 +127,7 @@ def get_current_relay_status():
 def get_relay_history(relay_number, hours=24):
     """Haal relay geschiedenis op"""
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
     c = conn.cursor()
     c.execute('''
         SELECT timestamp, status, reason 

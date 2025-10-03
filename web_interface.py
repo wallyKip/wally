@@ -27,6 +27,7 @@ RELAY_NAMES = {
 def get_latest_readings():
     """Haal de laatste meting voor elke sensor op"""
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
     c = conn.cursor()
     
     c.execute('''
@@ -55,6 +56,7 @@ def get_latest_readings():
 def get_sensor_history(sensor_id, hours=24):
     """Haal historische data op voor een sensor"""
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
     c = conn.cursor()
     
     since_time = datetime.now() - timedelta(hours=hours)
@@ -74,6 +76,7 @@ def get_sensor_history(sensor_id, hours=24):
 def get_relay_history(relay_number, hours=24):
     """Haal historische data op voor een specifieke relay"""
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA timezone = 'Europe/Brussels'")
     c = conn.cursor()
 
     since_time = datetime.now() - timedelta(hours=hours)
@@ -117,7 +120,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html = f"""<html>
 <head>
-    <title>Temperatuur & Relay Monitoring</title>
+    <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
         table {{ border-collapse: collapse; margin: 15px 0; width: 100%; }}
@@ -130,7 +133,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     </style>
 </head>
 <body>
-    <h1>🏠 Temperatuur & Relay Monitoring</h1>
+    <h1>Wally </h1>
     <p>Laatste update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
     
     <h2>🌡️ Temperatuur Sensoren</h2>
