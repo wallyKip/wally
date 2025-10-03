@@ -25,7 +25,8 @@ def read_sensor_temperature(sensor_id):
             content = f.read()
             if 'YES' in content:
                 temp_line = content.split('t=')[-1]
-                return float(temp_line) / 1000.0
+                temp = float(temp_line) / 1000.0
+                return round(temp)
     except:
         return None
     return None
