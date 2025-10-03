@@ -147,6 +147,8 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}
+        
+        <table>
         """
         
         # Sensor A - Naar radiatoren
@@ -163,9 +165,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Naar radiatoren</td>
             <td><strong>{temp_a if temp_a != 'N/A' else 'N/A'} &deg;C</strong>{warning_a}</td>
-        </tr>
-        
-        <table>"""
+        </tr>"""
         
         # Sensor B - Grote tank boven
         sensor_b_data = sensor_data.get("Grote tank boven", {})
