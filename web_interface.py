@@ -123,7 +123,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;margin:4px;padding:8px;font-size: 6em; }}
+        h1 {{ text-align:center;background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;margin:4px;padding:8px;font-size: 6em; }}
         table {{ width:100%;background-color:#d2f8d2;order:1px;border-radius: 5px;box-shadow: 2px 2px;margin:4px; }}
         th, td {{ background-color:#d2f8d2; border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 6em; }}
         th {{ background-color: #f2f2f2; }}
@@ -264,7 +264,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += """
     </table>
     
-    <br><br><h1 style="text-align:center;">Pompen</h1><br>
+    <br><br><h1>Pompen</h1><br>
     <table>
         <tr>"""
         # Relay 1 - Radiatoren
