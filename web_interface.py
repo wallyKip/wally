@@ -148,7 +148,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += f"""
         <strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}
         
-        <table>
+        <table style="width:auto;">
         """
         
         # Sensor A - Naar radiatoren
@@ -213,7 +213,9 @@ class SensorHandler(BaseHTTPRequestHandler):
         <tr>
             <td>Grote tank onder</td>
             <td><strong>{temp_d if temp_d != 'N/A' else 'N/A'} &deg;C</strong>{warning_d}</td>
-        </tr>"""
+        </tr></table>
+        
+        <table>"""
         
 
         
