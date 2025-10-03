@@ -194,7 +194,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td></td>
             <td><strong>{temp_c if temp_c != 'N/A' else 'N/A'} &deg;C</strong>{warning_c}</td>
         </tr>"""
         
@@ -210,10 +209,9 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td></td>
             <td><strong>{temp_d if temp_d != 'N/A' else 'N/A'} &deg;C</strong>{warning_d}</td>
         </tr></table>
-        
+        <br>
         <table>"""
         
 
@@ -230,8 +228,8 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td>Warm water</td>
-            <td><strong>{temp_f if temp_f != 'N/A' else 'N/A'} &deg;C</strong>{warning_f}</td>
+            <td rowspan="3">Warm water</td>
+            <td>in <strong>{temp_f if temp_f != 'N/A' else 'N/A'} &deg;C</strong>{warning_f}</td>
         </tr>"""
         
         # Sensor G - Warm water ingang
@@ -246,7 +244,6 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td>Warm water ingang</td>
             <td><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
         </tr>"""
         
@@ -262,8 +259,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td>Warm water uitgang</td>
-            <td><strong>{temp_h if temp_h != 'N/A' else 'N/A'} &deg;C</strong>{warning_h}</td>
+            <td>uit <strong>{temp_h if temp_h != 'N/A' else 'N/A'} &deg;C</strong>{warning_h}</td>
         </tr>"""
         
         html += """
