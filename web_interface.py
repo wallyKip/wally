@@ -161,7 +161,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         timestamp_b = sensor_b_data.get('timestamp', '')
         if timestamp_b:
             time_diff_b = (datetime.now() - datetime.strptime(timestamp_b, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b > 2.083 else ""
+            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b < 2.083 else ""
         else:
             warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
