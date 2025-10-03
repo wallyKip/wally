@@ -216,21 +216,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         
 
         
-        # Sensor F - Warm water
-        sensor_f_data = sensor_data.get("Warm water", {})
-        temp_f = sensor_f_data.get('temperature', 'N/A')
-        timestamp_f = sensor_f_data.get('timestamp', '')
-        if timestamp_f:
-            time_diff_f = (datetime.now() - datetime.strptime(timestamp_f, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_f > 2.083 else ""
-        else:
-            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
-        
-        html += f"""
-        <tr>
-            <td rowspan="3">Warm water</td>
-            <td>in <strong>{temp_f if temp_f != 'N/A' else 'N/A'} &deg;C</strong>{warning_f}</td>
-        </tr>"""
+
         
         # Sensor G - Warm water ingang
         sensor_g_data = sensor_data.get("Warm water ingang", {})
@@ -244,7 +230,23 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         html += f"""
         <tr>
-            <td><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
+            <td rowspan="3">Warm water</td>
+            <td>in <strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
+        </tr>"""
+
+        # Sensor F - Warm water
+        sensor_f_data = sensor_data.get("Warm water", {})
+        temp_f = sensor_f_data.get('temperature', 'N/A')
+        timestamp_f = sensor_f_data.get('timestamp', '')
+        if timestamp_f:
+            time_diff_f = (datetime.now() - datetime.strptime(timestamp_f, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_f > 2.083 else ""
+        else:
+            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td><strong>{temp_f if temp_f != 'N/A' else 'N/A'} &deg;C</strong>{warning_f}</td>
         </tr>"""
         
         # Sensor H - Warm water uitgang
