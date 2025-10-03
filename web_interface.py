@@ -264,9 +264,9 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += """
     </table>
     
-    <h2>Pompen</h2>
+    <h1 style="align:center;">Pompen</h1>
     <table>
-        <tr><th>Relay</th><th>Status</th>"""
+        <tr>"""
         # Relay 1 - Radiatoren
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
