@@ -155,7 +155,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         # Relay 1 - Radiatoren
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
-            <td><strong>Radiatoren</strong></td>
+            <td><strong>Warm Water</strong></td>
             <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
             <td class="timestamp">{relay_status[1]['last_updated']}</td>
             <td>
@@ -166,9 +166,9 @@ class SensorHandler(BaseHTTPRequestHandler):
         
         # Relay 2 - Warm Water
         html += f"""
-        <tr class="{'relay-on' if relay_status[2]['status'] else 'relay-off'}">
-            <td><strong>Warm Water</strong></td>
-            <td>{'AAN' if relay_status[2]['status'] else 'UIT'}</td>
+        <tr class="{'relay-off' if relay_status[2]['status'] else 'relay-on'}">
+            <td><strong>Radiatoren</strong></td>
+            <td>{'UIT' if relay_status[2]['status'] else 'AAN'}</td>
             <td class="timestamp">{relay_status[2]['last_updated']}</td>
             <td>
                 <button class="relay-btn" onclick="setRelay(2, 1)">AAN</button>
