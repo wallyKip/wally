@@ -9,14 +9,14 @@ init_gpio()
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 SENSOR_MAPPING = {
-    "28-0b24a04fc39f": "A - Naar radiatoren",
-    "28-0b24a0539bdb": "B - Grote tank boven",
-    "28-0b24a0545ad2": "C - Grote tank midden",
-    "28-0b24a0507904": "D - Grote tank onder",
-    "28-0b24a0569043": "E - Wally uitgang",
-    "28-0b24a050eaec": "F - Warm water",
-    "28-0b24a03a4d26": "G - Warm water ingang",
-    "28-0b24a0551b3c": "H - Warm water uitgang"
+    "28-0b24a04fc39f": "Naar radiatoren",
+    "28-0b24a0539bdb": "Grote tank boven",
+    "28-0b24a0545ad2": "Grote tank midden",
+    "28-0b24a0507904": "Grote tank onder",
+    "28-0b24a0569043": "Wally uitgang",
+    "28-0b24a050eaec": "Warm water",
+    "28-0b24a03a4d26": "Warm water ingang",
+    "28-0b24a0551b3c": "Warm water uitgang"
 }
 
 RELAY_NAMES = {
@@ -134,19 +134,144 @@ class SensorHandler(BaseHTTPRequestHandler):
 </head>
 <body>
     <h1>Wally </h1>    
+    <h2>🌡️ Temperatuur Sensoren</h2>
     <table>
         <tr><th>Sensor</th><th>Temperatuur</th><th>Laatste meting</th></tr>"""
         
-        for sensor_name, data in sensor_data.items():
-            last_updated_1 = data['timestamp']
-            timestamp_1 = datetime.strptime(last_updated_1, '%Y-%m-%d %H:%M:%S')
-            time_diff_1 = (datetime.now() - timestamp_1).total_seconds() / 3600  # uren
-            warning_1 = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_1 < 2.083 else ""  # 2u5min = 2.083 uur
-            html += f"""
+        # Sensor A - Naar radiatoren
+        sensor_a_data = sensor_data.get("Naar radiatoren", {})
+        temp_a = sensor_a_data.get('temperature', 'N/A')
+        timestamp_a = sensor_a_data.get('timestamp', '')
+        if timestamp_a:
+            time_diff_a = (datetime.now() - datetime.strptime(timestamp_a, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_a > 2.083 else ""
+        else:
+            warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
         <tr>
-            <td>{sensor_name}</td>
-            <td><strong>{data['temperature']:.1f} °C</strong></td>
-            <td class="timestamp">{warning_1}</td>
+            <td>Naar radiatoren</td>
+            <td><strong>{temp_a if temp_a != 'N/A' else 'N/A'} &deg;C</strong>{warning_a}</td>
+            <td class="timestamp">{timestamp_a if timestamp_a else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor B - Grote tank boven
+        sensor_b_data = sensor_data.get("Grote tank boven", {})
+        temp_b = sensor_b_data.get('temperature', 'N/A')
+        timestamp_b = sensor_b_data.get('timestamp', '')
+        if timestamp_b:
+            time_diff_b = (datetime.now() - datetime.strptime(timestamp_b, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_b > 2.083 else ""
+        else:
+            warning_b = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Grote tank boven</td>
+            <td><strong>{temp_b if temp_b != 'N/A' else 'N/A'} &deg;C</strong>{warning_b}</td>
+            <td class="timestamp">{timestamp_b if timestamp_b else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor C - Grote tank midden
+        sensor_c_data = sensor_data.get("Grote tank midden", {})
+        temp_c = sensor_c_data.get('temperature', 'N/A')
+        timestamp_c = sensor_c_data.get('timestamp', '')
+        if timestamp_c:
+            time_diff_c = (datetime.now() - datetime.strptime(timestamp_c, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_c = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_c > 2.083 else ""
+        else:
+            warning_c = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Grote tank midden</td>
+            <td><strong>{temp_c if temp_c != 'N/A' else 'N/A'} &deg;C</strong>{warning_c}</td>
+            <td class="timestamp">{timestamp_c if timestamp_c else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor D - Grote tank onder
+        sensor_d_data = sensor_data.get("Grote tank onder", {})
+        temp_d = sensor_d_data.get('temperature', 'N/A')
+        timestamp_d = sensor_d_data.get('timestamp', '')
+        if timestamp_d:
+            time_diff_d = (datetime.now() - datetime.strptime(timestamp_d, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_d = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_d > 2.083 else ""
+        else:
+            warning_d = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Grote tank onder</td>
+            <td><strong>{temp_d if temp_d != 'N/A' else 'N/A'} &deg;C</strong>{warning_d}</td>
+            <td class="timestamp">{timestamp_d if timestamp_d else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor E - Wally uitgang
+        sensor_e_data = sensor_data.get("Wally uitgang", {})
+        temp_e = sensor_e_data.get('temperature', 'N/A')
+        timestamp_e = sensor_e_data.get('timestamp', '')
+        if timestamp_e:
+            time_diff_e = (datetime.now() - datetime.strptime(timestamp_e, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_e > 2.083 else ""
+        else:
+            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Wally uitgang</td>
+            <td><strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}</td>
+            <td class="timestamp">{timestamp_e if timestamp_e else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor F - Warm water
+        sensor_f_data = sensor_data.get("Warm water", {})
+        temp_f = sensor_f_data.get('temperature', 'N/A')
+        timestamp_f = sensor_f_data.get('timestamp', '')
+        if timestamp_f:
+            time_diff_f = (datetime.now() - datetime.strptime(timestamp_f, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_f > 2.083 else ""
+        else:
+            warning_f = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Warm water</td>
+            <td><strong>{temp_f if temp_f != 'N/A' else 'N/A'} &deg;C</strong>{warning_f}</td>
+            <td class="timestamp">{timestamp_f if timestamp_f else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor G - Warm water ingang
+        sensor_g_data = sensor_data.get("Warm water ingang", {})
+        temp_g = sensor_g_data.get('temperature', 'N/A')
+        timestamp_g = sensor_g_data.get('timestamp', '')
+        if timestamp_g:
+            time_diff_g = (datetime.now() - datetime.strptime(timestamp_g, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_g = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_g > 2.083 else ""
+        else:
+            warning_g = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Warm water ingang</td>
+            <td><strong>{temp_g if temp_g != 'N/A' else 'N/A'} &deg;C</strong>{warning_g}</td>
+            <td class="timestamp">{timestamp_g if timestamp_g else 'Geen data'}</td>
+        </tr>"""
+        
+        # Sensor H - Warm water uitgang
+        sensor_h_data = sensor_data.get("Warm water uitgang", {})
+        temp_h = sensor_h_data.get('temperature', 'N/A')
+        timestamp_h = sensor_h_data.get('timestamp', '')
+        if timestamp_h:
+            time_diff_h = (datetime.now() - datetime.strptime(timestamp_h, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_h = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_h > 2.083 else ""
+        else:
+            warning_h = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <tr>
+            <td>Warm water uitgang</td>
+            <td><strong>{temp_h if temp_h != 'N/A' else 'N/A'} &deg;C</strong>{warning_h}</td>
+            <td class="timestamp">{timestamp_h if timestamp_h else 'Geen data'}</td>
         </tr>"""
         
         html += """
