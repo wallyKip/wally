@@ -161,28 +161,29 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += """
     </table>
     
-    <h2>⏻ Relay Bediening</h2>
+    <h2>Pompen</h2>
     <table>
-        <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>"""
+        <tr><th>Relay</th><th>Status</th><th>Laatste update</th><th>Actie</th></tr>
         
-        for relay_num, status_info in relay_status.items():
-            status = status_info['status']
-            status_class = "relay-on" if status else "relay-off"
-            status_text = "AAN" if status else "UIT"
-            relay_name = RELAY_NAMES.get(relay_num, f"Relay {relay_num}")
-            
-            html += f"""
-        <tr class="{status_class}">
-            <td><strong>{relay_name}</strong></td>
-            <td>{status_text}</td>
-            <td class="timestamp">{status_info['last_updated']}</td>
+        <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
+            <td><strong>Radiatoren</strong></td>
+            <td>{'AAN' if relay_status[1]['status'] else 'UIT'}</td>
+            <td class="timestamp">{relay_status[1]['last_updated']}</td>
             <td>
-                <button class="relay-btn" onclick="setRelay({relay_num}, 1)">AAN</button>
-                <button class="relay-btn" onclick="setRelay({relay_num}, 0)">UIT</button>
+                <button class="relay-btn" onclick="setRelay(1, 1)">AAN</button>
+                <button class="relay-btn" onclick="setRelay(1, 0)">UIT</button>
             </td>
-        </tr>"""
+        </tr>
         
-        html += """
+        <tr class="{'relay-on' if relay_status[2]['status'] else 'relay-off'}">
+            <td><strong>Warm Water</strong></td>
+            <td>{'AAN' if relay_status[2]['status'] else 'UIT'}</td>
+            <td class="timestamp">{relay_status[2]['last_updated']}</td>
+            <td>
+                <button class="relay-btn" onclick="setRelay(2, 1)">AAN</button>
+                <button class="relay-btn" onclick="setRelay(2, 0)">UIT</button>
+            </td>
+        </tr>
     </table>
     
     <script>
