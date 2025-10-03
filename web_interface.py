@@ -123,7 +123,6 @@ class SensorHandler(BaseHTTPRequestHandler):
     <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        table {{ border-collapse: collapse; margin: 15px 0; width: 100%; }}
         th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
         th {{ background-color: #f2f2f2; }}
         .relay-on {{ background-color: #d4edda; }}
@@ -132,8 +131,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         .timestamp {{ color: #666; font-size: 0.9em; }}
     </style>
 </head>
-<body>
-    <h1>Wally </h1>   """ 
+<body>""" 
     
         # Sensor E - Wally uitgang
         sensor_e_data = sensor_data.get("Wally uitgang", {})
@@ -146,7 +144,8 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
-        <strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}
+        <h1>Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
+        <strong></strong>
         
         <table style="width:auto;">
         """
