@@ -133,10 +133,21 @@ class SensorHandler(BaseHTTPRequestHandler):
     </style>
 </head>
 <body>
-    <h1>Wally </h1>    
-    <h2>🌡️ Temperatuur Sensoren</h2>
-    <table>
-        <tr><th>Sensor</th><th>Temperatuur</th></tr>"""
+    <h1>Wally </h1>   """ 
+    
+        # Sensor E - Wally uitgang
+        sensor_e_data = sensor_data.get("Wally uitgang", {})
+        temp_e = sensor_e_data.get('temperature', 'N/A')
+        timestamp_e = sensor_e_data.get('timestamp', '')
+        if timestamp_e:
+            time_diff_e = (datetime.now() - datetime.strptime(timestamp_e, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
+            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_e > 2.083 else ""
+        else:
+            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
+        
+        html += f"""
+        <strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}
+        """
         
         # Sensor A - Naar radiatoren
         sensor_a_data = sensor_data.get("Naar radiatoren", {})
@@ -202,21 +213,7 @@ class SensorHandler(BaseHTTPRequestHandler):
             <td><strong>{temp_d if temp_d != 'N/A' else 'N/A'} &deg;C</strong>{warning_d}</td>
         </tr>"""
         
-        # Sensor E - Wally uitgang
-        sensor_e_data = sensor_data.get("Wally uitgang", {})
-        temp_e = sensor_e_data.get('temperature', 'N/A')
-        timestamp_e = sensor_e_data.get('timestamp', '')
-        if timestamp_e:
-            time_diff_e = (datetime.now() - datetime.strptime(timestamp_e, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>" if time_diff_e > 2.083 else ""
-        else:
-            warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
-        
-        html += f"""
-        <tr>
-            <td>Wally uitgang</td>
-            <td><strong>{temp_e if temp_e != 'N/A' else 'N/A'} &deg;C</strong>{warning_e}</td>
-        </tr>"""
+
         
         # Sensor F - Warm water
         sensor_f_data = sensor_data.get("Warm water", {})
