@@ -123,9 +123,9 @@ class SensorHandler(BaseHTTPRequestHandler):
     <title>Wally</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;display:inline-block;box-shadow: 2px 2px;padding:8px;font-size: 2em; }}
+        h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;display:inline-block;box-shadow: 2px 2px;padding:8px;font-size: 8em; }}
         table {{ width:100%;background-color:#d2f8d2;order:1px;border-radius: 5px;box-shadow: 2px 2px; }}
-        th, td {{ background-color:#d2f8d2; border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 2em; }}
+        th, td {{ background-color:#d2f8d2; border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 8em; }}
         th {{ background-color: #f2f2f2; }}
         .relay-on {{ background-color: #d4edda; }}
         .relay-off {{ background-color: #f8d7da; }}
@@ -383,6 +383,5 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.send_error(400)
 
 if __name__ == '__main__':
-    print("Web Interface gestart op http://0.0.0.0:80")
     httpd = HTTPServer(('', 80), SensorHandler)
     httpd.serve_forever()
