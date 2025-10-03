@@ -124,7 +124,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
         h1 {{ background-color:#d2f8d2;border:1px;border-radius: 5px;box-shadow: 2px 2px;padding:8px;font-size: 2em; }}
-        table {{ width:100%;background-color:#d2f8d2;order:1px;border-radius: 5px;box-shadow: 2px 2px; }}
+        table {{ width:200px;background-color:#d2f8d2;order:1px;border-radius: 5px;box-shadow: 2px 2px; }}
         th, td {{ background-color:#d2f8d2; border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold; font-size: 2em; }}
         th {{ background-color: #f2f2f2; }}
         .relay-on {{ background-color: #d4edda; }}
@@ -149,8 +149,7 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_e = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
-        <h1>Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
-        
+        <h1>Wally  &#8594; {temp_e if temp_e != 'N/A' else 'N/A'} &deg;C {warning_e}</h1>
         """
         
         # Sensor A - Naar radiatoren
@@ -164,11 +163,8 @@ class SensorHandler(BaseHTTPRequestHandler):
             warning_a = " <span style='color: red; font-weight: bold;'>&#9888;</span>"
         
         html += f"""
-            <br>
-            <h1>
-                Naar radiatoren  &#8594; {temp_a if temp_a != 'N/A' else 'N/A'} &deg;C {warning_e}
-            </h1> 
-            """
+        <h1>Naar radiatoren  &#8594; {temp_a if temp_a != 'N/A' else 'N/A'} &deg;C {warning_e}</h1> 
+        """
         
         # Sensor B - Grote tank boven
         sensor_b_data = sensor_data.get("Grote tank boven", {})
