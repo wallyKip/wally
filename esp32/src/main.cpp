@@ -28,23 +28,92 @@ bool pumpState = false;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(12, OUTPUT);  // LED voor Relay 1 - Radiatoren
-  pinMode(13, OUTPUT);  // KNIPPERT - Temperatuur trend
-  pinMode(14, OUTPUT);  // LED voor Relay 2 - Warm Water
-  pinMode(buttonPin, INPUT_PULLUP); // voor button
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(14, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
   
   display.init();
   display.setFont(ArialMT_Plain_16);
   display.drawString(0, 0, "Verbinden...");
   display.display();
   
+  Serial.println("Start ESP32...");
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
+  Serial.print("Verbinden met ");
+  Serial.println(ssid);
+
+  unsigned long startTime = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startTime < 15000) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nVerbonden! IP: " + WiFi.localIP().toString());
+    
+    // TOEVOEGEN: Update display na verbinding
+    display.clear();
+    display.drawString(0, 0, "Verbonden!");
+    display.drawString(0, 20, WiFi.localIP().toString());
+    display.display();
+    
+  } else {
+    Serial.println("\nNiet verbonden");
+    display.clear();
+    display.drawString(0, 0, "WiFi fout!");
+    display.display();
+  }
 }
 
 bool parseRelayStatus(String json, int relayNumber) {
   String searchPattern = "\"" + String(relayNumber) + "\":{\"status\":1";
   return (json.indexOf(searchPattern) != -1);
+}
+
+void togglePump() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    
+    // Eerst huidige status ophalen
+    http.begin("http://192.168.1.10/api/relay_status");
+    int httpCode = http.GET();
+    
+    if (httpCode == 200) {
+      String payload = http.getString();
+      bool currentStatus = parseRelayStatus(payload, 1);
+      
+      // Toggle de status
+      bool newStatus = !currentStatus;
+      
+      // Stuur nieuwe status
+      http.end();
+      http.begin("http://192.168.1.10/relay/1/" + String(newStatus ? "1" : "0"));
+      httpCode = http.GET();
+      
+      if (httpCode == 200) {
+        Serial.println("Pomp getoggled: " + String(newStatus ? "AAN" : "UIT"));
+      } else {
+        Serial.println("Fout bij set relay: " + String(httpCode));
+      }
+    } else {
+      Serial.println("Fout bij ophalen status: " + String(httpCode));
+    }
+    http.end();
+  }
+}
+
+void handleButton() {
+  bool currentButtonState = digitalRead(buttonPin);
+  
+  if (currentButtonState == LOW) {
+    // Button ingedrukt - toggle pomp (Relay 1)
+      Serial.println("button ingedrukt");
+    togglePump();
+    delay(50);  // Debounce
+  }
+  
+  lastButtonState = currentButtonState;
 }
 
 void getRelayStatus() {
@@ -79,7 +148,6 @@ void updateTemperatureTrend() {
     Serial.println(isTemperatureRising ? " (STIJGEND)" : " (DALEND)");
   }
   
-  // Sla huidige temperatuur op voor volgende vergelijking
   previousTempWally = tempWally;
 }
 
@@ -147,37 +215,19 @@ void getTemperatureData() {
       display.clear();
       display.drawString(0, 0, "Wally: " + String(tempWally,0) + "C" + (isTemperatureRising ? "↑" : "↓"));
       display.drawString(0, 20, "Radiatoren: " + String(tempRadiatoren,0) + "C");
-      display.display();      
-    // } else {
-    //   display.clear();
-    //   display.drawString(0, 0, "HTTP Fout: " + String(httpCode));
-    //   display.display();
+      display.display();
     }
     http.end();
   }
 }
 
 void loop() {
-  blinkLED13();  // Gebruikt globale tempWally
-
-  // bool currentButtonState = digitalRead(buttonPin);
-  
-  // Serial.print("current: " + String(lastButtonState ? "AAN" : "UIT")); 
-  // Serial.print("last: " + String(lastButtonState ? "AAN" : "UIT"));
-
-  // if (lastButtonState == HIGH && currentButtonState == LOW) {
-  //   // Button ingedrukt - toggle pomp
-  //   pumpState = !pumpState;
-  //   digitalWrite(12, pumpState);  // Stuur relay aan
-    
-  //   Serial.println("Pomp: " + String(pumpState ? "AAN" : "UIT"));
-  //   delay(50);  // Debounce
-  // }
-  // lastButtonState = currentButtonState;
+  handleButton();        // Check button input
+  blinkLED13();
 
   static unsigned long lastDataTime = 0;
-  if (millis() - lastDataTime >= 30000) {
-    getTemperatureData();  // Update globale variables
+  if (millis() - lastDataTime >= 3000) { // Elke 3 seconden
+    getTemperatureData();
     getRelayStatus();
     updateLEDs();
     lastDataTime = millis();
