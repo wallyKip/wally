@@ -71,6 +71,26 @@ bool parseRelayStatus(String json, int relayNumber) {
   return (json.indexOf(searchPattern) != -1);
 }
 
+void getRelayStatus() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin("http://192.168.1.10/api/relay_status");
+    int httpCode = http.GET();
+    
+    if (httpCode == 200) {
+      String payload = http.getString();
+      relay1Status = parseRelayStatus(payload, 0);
+      relay2Status = parseRelayStatus(payload, 1);
+    }
+    http.end();
+  }
+}
+
+void updateLEDs() {
+  digitalWrite(12, relay1Status);
+  digitalWrite(14, relay2Status);
+}
+
 void togglePump() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -88,7 +108,7 @@ void togglePump() {
       
       // Stuur nieuwe status
       http.end();
-      http.begin("http://192.168.1.10/relay/1/" + String(newStatus ? "1" : "0"));
+      http.begin("http://192.168.1.10/relay/2/" + String(newStatus ? "1" : "0"));
       httpCode = http.GET();
       
       if (httpCode == 200) {
@@ -114,27 +134,6 @@ void handleButton() {
   }
   
   lastButtonState = currentButtonState;
-}
-
-void getRelayStatus() {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin("http://192.168.1.10/api/relay_status");
-    int httpCode = http.GET();
-    
-    if (httpCode == 200) {
-      String payload = http.getString();
-
-      relay1Status = parseRelayStatus(payload, 1);
-      relay2Status = parseRelayStatus(payload, 2);
-    }
-    http.end();
-  }
-}
-
-void updateLEDs() {
-  digitalWrite(12, !relay1Status);
-  digitalWrite(14, !relay2Status);
 }
 
 void updateTemperatureTrend() {
@@ -230,6 +229,9 @@ void loop() {
     getTemperatureData();
     getRelayStatus();
     updateLEDs();
+
+    Serial.println("relay 0: " + String(relay1Status));
+    Serial.println("relay 1: " + String(relay1Status));
     lastDataTime = millis();
   }
 }
