@@ -2,6 +2,7 @@
 #include <HTTPClient.h>
 #include <Wire.h>
 #include <SSD1306Wire.h>
+#include <ArduinoJson.h>
 
 SSD1306Wire display(0x3c, 21, 22);
 const char* ssid = "MiloBoven";
@@ -67,8 +68,14 @@ void setup() {
 }
 
 bool parseRelayStatus(String json, int relayNumber) {
-  String searchPattern = "\"" + String(relayNumber) + "\":{\"status\":1";
-  return (json.indexOf(searchPattern) != -1);
+  DynamicJsonDocument doc(1024);
+  DeserializationError error = deserializeJson(doc, json);
+  
+  if (!error) {
+    return doc[String(relayNumber)]["status"] == 1;
+  }
+  
+  return false;
 }
 
 void getRelayStatus() {
@@ -79,8 +86,8 @@ void getRelayStatus() {
     
     if (httpCode == 200) {
       String payload = http.getString();
-      relay1Status = parseRelayStatus(payload, 0);
-      relay2Status = parseRelayStatus(payload, 1);
+      relay1Status = parseRelayStatus(payload, 1);
+      relay2Status = !parseRelayStatus(payload, 2); //moet omgekeerd ivm switch op relay
     }
     http.end();
   }
@@ -101,8 +108,12 @@ void togglePump() {
     
     if (httpCode == 200) {
       String payload = http.getString();
-      bool currentStatus = parseRelayStatus(payload, 1);
+      Serial.println("Payload:");
+      Serial.println(payload);
+      bool currentStatus = (parseRelayStatus(payload, 1) ? true : false); // Relay 1 status
       
+      Serial.println("huidige status: " + String(currentStatus));
+
       // Toggle de status
       bool newStatus = !currentStatus;
       
@@ -230,8 +241,6 @@ void loop() {
     getRelayStatus();
     updateLEDs();
 
-    Serial.println("relay 0: " + String(relay1Status));
-    Serial.println("relay 1: " + String(relay1Status));
     lastDataTime = millis();
   }
 }
