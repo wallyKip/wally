@@ -4,6 +4,12 @@ import sqlite3
 import json
 from datetime import datetime, timedelta
 from relay_manager import init_gpio, get_current_relay_status, set_relay_status
+from socketserver import ThreadingMixIn
+from http.server import HTTPServer
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
+    pass 
 
 init_gpio() 
 
@@ -373,5 +379,6 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.send_error(400)
 
 if __name__ == '__main__':
-    httpd = HTTPServer(('', 80), SensorHandler)
+    print("Web Interface gestart op http://0.0.0.0:80 (Threading)")
+    httpd = ThreadedHTTPServer(('', 80), SensorHandler)
     httpd.serve_forever()
