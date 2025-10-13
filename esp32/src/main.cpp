@@ -251,7 +251,7 @@ void updateDisplay() {
   
   // DHT sensor data
   if (temperature != -999) {
-    display.drawString(90, 30, String(temperature,1) + "C");
+    display.drawString(90, 30, String(temperature,0));
   } else {
     display.drawString(90, 30, "--C");
   }
