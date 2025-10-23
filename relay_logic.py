@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import sqlite3
 import time
+import requests
 from datetime import datetime, timedelta
-from relay_manager import set_relay_status, read_relay_status
+from relay_manager import set_relay_status  # Schrijven via relay_manager
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
+API_BASE = "http://localhost"
 
 # Sensor-ID's
 SENSOR_TANK_BOVEN = "28-0b24a0539bdb"
@@ -12,13 +14,22 @@ SENSOR_WARM_WATER = "28-0b24a050eaec"
 
 # Relay-instellingen
 RELAY_NUM = 1
-SWITCH_INTERVAL = timedelta(minutes=5)  # Minimaal 5 minuten tussen schakelingen
+SWITCH_INTERVAL = timedelta(minutes=5)
+
+def get_relay_status_via_api(relay_num):
+    """Lees relay status via web_interface API"""
+    try:
+        response = requests.get(f"{API_BASE}/api/relay_status", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get(str(relay_num), {}).get('status')
+    except Exception as e:
+        print(f"API fout: {e}")
+    return None
 
 def get_latest_temp(sensor_id):
     conn = sqlite3.connect(DB_PATH)
-     
     c = conn.cursor()
-
     c.execute('''
         SELECT temperature, timestamp
         FROM sensor_readings
@@ -26,10 +37,8 @@ def get_latest_temp(sensor_id):
         ORDER BY timestamp DESC
         LIMIT 1
     ''', (sensor_id,))
-
     row = c.fetchone()
     conn.close()
-
     if row:
         temp, ts = row
         return temp, datetime.fromisoformat(ts)
@@ -37,9 +46,7 @@ def get_latest_temp(sensor_id):
 
 def get_last_relay_switch_time(relay_num):
     conn = sqlite3.connect(DB_PATH)
-     
     c = conn.cursor()
-
     c.execute('''
         SELECT timestamp
         FROM relay_status
@@ -47,10 +54,8 @@ def get_last_relay_switch_time(relay_num):
         ORDER BY timestamp DESC
         LIMIT 1
     ''', (relay_num,))
-
     row = c.fetchone()
     conn.close()
-
     if row:
         return datetime.fromisoformat(row[0])
     return None
@@ -77,7 +82,14 @@ def main():
                 time.sleep(60)
                 continue
 
-            current_status = read_relay_status(RELAY_NUM)
+            # LEES VIA API i.p.v. direct GPIO
+            current_status = get_relay_status_via_api(RELAY_NUM)
+            print(f"Relay status via API: {current_status}")
+
+            if current_status is None:
+                print("Kon relay status niet lezen via API")
+                time.sleep(60)
+                continue
 
             if temp_water > 60.0:
                 if current_status == 1:
