@@ -3,7 +3,6 @@ import sqlite3
 import time
 import requests
 from datetime import datetime, timedelta
-from relay_manager import set_relay_status  # Schrijven via relay_manager
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 API_BASE = "http://localhost"
@@ -26,6 +25,16 @@ def get_relay_status_via_api(relay_num):
     except Exception as e:
         print(f"API fout: {e}")
     return None
+
+def set_relay_via_api(relay_num, status):
+    """Schakel relay via web_interface API"""
+    try:
+        url = f"{API_BASE}/relay/{relay_num}/{1 if status else 0}"
+        response = requests.get(url, timeout=5)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"API set fout: {e}")
+    return False
 
 def get_latest_temp(sensor_id):
     conn = sqlite3.connect(DB_PATH)
@@ -61,7 +70,7 @@ def get_last_relay_switch_time(relay_num):
     return None
 
 def main():
-    print("Start temperatuurgestuurde relaylogica...")
+    print("Start temperatuurgestuurde relaylogica (API mode)...")
     
     while True:
         try:
@@ -82,7 +91,7 @@ def main():
                 time.sleep(60)
                 continue
 
-            # LEES VIA API i.p.v. direct GPIO
+            # LEES VIA API
             current_status = get_relay_status_via_api(RELAY_NUM)
             print(f"Relay status via API: {current_status}")
 
@@ -94,13 +103,13 @@ def main():
             if temp_water > 60.0:
                 if current_status == 1:
                     print("Warm water boven 60°C → Relay UIT")
-                    set_relay_status(RELAY_NUM, 0, "logic_warm_water")
+                    set_relay_via_api(RELAY_NUM, 0)
                 else:
                     print("Warm water boven 60°C → Relay al uit")
             elif temp_tank > 70.0:
                 if current_status == 0:
                     print("Tank boven 70°C → Relay AAN")
-                    set_relay_status(RELAY_NUM, 1, "logic_tank_hoog")
+                    set_relay_via_api(RELAY_NUM, 1)
                 else:
                     print("Tank boven 70°C → Relay al aan")
             else:
