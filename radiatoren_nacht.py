@@ -1,30 +1,44 @@
 #!/usr/bin/env python3
 import sqlite3
 import time
+import requests
 from datetime import datetime, timedelta
-from relay_manager import set_relay_status, read_relay_status
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
+API_BASE = "http://localhost"
 
 # Relay-instellingen
 RELAY_RADIATOREN = 2  # Relay voor radiatoren
 DAG_START = 6         # 06:00 - Relay AAN
-NACHT_START = 22      # 22:00 - Start cyclus
+NACHT_START = 20      # 20:00 - Start cyclus
 NACHT_EIND = 6        # 06:00 - Einde cyclus
 AAN_TIJD = 10         # 10 minuten aan
 UIT_TIJD = 50         # 50 minuten uit
 
-def set_radiatoren_relay(status, reden):
-    """Schakel radiatoren relay met logging"""
+def get_relay_status_via_api(relay_num):
+    """Lees relay status via web_interface API"""
     try:
-        success = set_relay_status(RELAY_RADIATOREN, status, f"radiatoren_{reden}")
+        response = requests.get(f"{API_BASE}/api/relay_status", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get(str(relay_num), {}).get('status')
+    except Exception as e:
+        print(f"API fout: {e}")
+    return None
+
+def set_relay_via_api(relay_num, status, reason=""):
+    """Schakel relay via web_interface API"""
+    try:
+        url = f"{API_BASE}/relay/{relay_num}/{1 if status else 0}"
+        response = requests.get(url, timeout=5)
+        success = response.status_code == 200
         if success:
             status_tekst = "AAN" if status else "UIT"
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Radiatoren relay {status_tekst} - {reden}")
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Radiatoren relay {status_tekst} - {reason}")
         return success
     except Exception as e:
-        print(f"Fout bij schakelen relay: {e}")
-        return False
+        print(f"API set fout: {e}")
+    return False
 
 def is_dag_mode():
     """Check of we in dagperiode zitten (06:00 - 22:00)"""
@@ -71,7 +85,7 @@ def get_nacht_cycle_status():
         return False  # UIT
 
 def main():
-    print("Start radiatoren dag/nacht cyclus...")
+    print("Start radiatoren dag/nacht cyclus (API mode)...")
     print(f"Dag (AAN): {DAG_START:02d}:00 - {NACHT_START:02d}:00")
     print(f"Nacht (cyclus): {NACHT_START:02d}:00 - {DAG_START:02d}:00")
     print(f"Nacht cyclus: {AAN_TIJD}min AAN, {UIT_TIJD}min UIT")
@@ -82,18 +96,25 @@ def main():
     while True:
         try:
             now = datetime.now()
-            huidige_relay_status = read_relay_status(RELAY_RADIATOREN)
+            
+            # LEES RELAY STATUS VIA API
+            huidige_relay_status = get_relay_status_via_api(RELAY_RADIATOREN)
+            
+            if huidige_relay_status is None:
+                print(f"[{now.strftime('%H:%M:%S')}] Kon relay status niet lezen via API")
+                time.sleep(60)
+                continue
             
             if is_dag_mode():
                 # DAG MODE - relay altijd AAN
                 if laatste_modus != 'dag':
                     print(f"[{now.strftime('%H:%M:%S')}] 🟢 Dag mode - Zet relay AAN")
-                    set_radiatoren_relay(1, "dag_mode_aan")
+                    set_relay_via_api(RELAY_RADIATOREN, 1, "dag_mode_aan")
                     laatste_modus = 'dag'
                     laatste_cyclus_status = None
                 elif not huidige_relay_status:
                     # Relay is per ongeluk uit, zet weer aan
-                    set_radiatoren_relay(1, "dag_mode_herstel")
+                    set_relay_via_api(RELAY_RADIATOREN, 1, "dag_mode_herstel")
                 
                 # Status log elke 10 minuten om spam te voorkomen
                 if now.minute % 10 == 0:
@@ -109,9 +130,9 @@ def main():
                 
                 if gewenste_status is not None and gewenste_status != laatste_cyclus_status:
                     if gewenste_status:
-                        set_radiatoren_relay(1, "nacht_cyclus_aan")
+                        set_relay_via_api(RELAY_RADIATOREN, 1, "nacht_cyclus_aan")
                     else:
-                        set_radiatoren_relay(0, "nacht_cyclus_uit")
+                        set_relay_via_api(RELAY_RADIATOREN, 0, "nacht_cyclus_uit")
                     laatste_cyclus_status = gewenste_status
                 
                 # Toon huidige status elke cyclus wissel
