@@ -107,32 +107,37 @@ def main():
                 time.sleep(60)
                 continue
 
-            # LOGICA MET HYSTERESIS
-            if temp_water > TEMP_WATER_UIT:
-                # Water te warm → UIT
+            # LOGICA MET PRIORITEITEN
+            action_taken = False
+            
+            # 1. PRIORITEIT: Tank noodscenario (ALTIJD AAN als tank > 70°C)
+            if temp_tank > TEMP_TANK_AAN:
+                if current_status == 0:
+                    print(f"🚨 Tank boven {TEMP_TANK_AAN}°C → Relay AAN (NOOD)")
+                    set_relay_via_api(RELAY_NUM, 1)
+                else:
+                    print(f"🚨 Tank boven {TEMP_TANK_AAN}°C → Relay al aan (nood)")
+                action_taken = True
+                
+            # 2. PRIORITEIT: Water te warm (UIT)
+            elif temp_water > TEMP_WATER_UIT:
                 if current_status == 1:
                     print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay UIT")
                     set_relay_via_api(RELAY_NUM, 0)
                 else:
                     print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay al uit")
-                    
+                action_taken = True
+                
+            # 3. PRIORITEIT: Water te koud (AAN)
             elif temp_water < TEMP_WATER_AAN:
-                # Water te koud → AAN
                 if current_status == 0:
                     print(f"Warm water onder {TEMP_WATER_AAN}°C → Relay AAN")
                     set_relay_via_api(RELAY_NUM, 1)
                 else:
                     print(f"Warm water onder {TEMP_WATER_AAN}°C → Relay al aan")
-                    
-            elif temp_tank > TEMP_TANK_AAN:
-                # Tank te warm (noodscenario) → AAN
-                if current_status == 0:
-                    print(f"Tank boven {TEMP_TANK_AAN}°C → Relay AAN (nood)")
-                    set_relay_via_api(RELAY_NUM, 1)
-                else:
-                    print(f"Tank boven {TEMP_TANK_AAN}°C → Relay al aan")
-                    
-            else:
+                action_taken = True
+                
+            if not action_taken:
                 # Geen actie nodig - tussen 58°C en 60°C
                 print(f"Geen actie nodig (water: {temp_water:.1f}°C, tussen {TEMP_WATER_AAN}-{TEMP_WATER_UIT}°C)")
 
