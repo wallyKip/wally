@@ -76,8 +76,8 @@ def get_last_relay_switch_time(relay_num):
 
 def main():
     print("Start temperatuurgestuurde relaylogica (API mode)...")
-    print(f"Water: AAN < {TEMP_WATER_AAN}°C, UIT > {TEMP_WATER_UIT}°C")
-    print(f"Tank (nood): AAN > {TEMP_TANK_AAN}°C")
+    print(f"Water: UIT > {TEMP_WATER_UIT}°C")
+    print(f"AAN alleen als: Water < {TEMP_WATER_AAN}°C EN Tank > {TEMP_TANK_AAN}°C")
     
     while True:
         try:
@@ -107,20 +107,11 @@ def main():
                 time.sleep(60)
                 continue
 
-            # LOGICA MET PRIORITEITEN
+            # LOGICA
             action_taken = False
             
-            # 1. PRIORITEIT: Tank noodscenario (ALTIJD AAN als tank > 70°C)
-            if temp_tank > TEMP_TANK_AAN:
-                if current_status == 0:
-                    print(f"🚨 Tank boven {TEMP_TANK_AAN}°C → Relay AAN (NOOD)")
-                    set_relay_via_api(RELAY_NUM, 1)
-                else:
-                    print(f"🚨 Tank boven {TEMP_TANK_AAN}°C → Relay al aan (nood)")
-                action_taken = True
-                
-            # 2. PRIORITEIT: Water te warm (UIT)
-            elif temp_water > TEMP_WATER_UIT:
+            # 1. PRIORITEIT: Water te warm (UIT)
+            if temp_water > TEMP_WATER_UIT:
                 if current_status == 1:
                     print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay UIT")
                     set_relay_via_api(RELAY_NUM, 0)
@@ -128,18 +119,21 @@ def main():
                     print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay al uit")
                 action_taken = True
                 
-            # 3. PRIORITEIT: Water te koud (AAN)
-            elif temp_water < TEMP_WATER_AAN:
+            # 2. PRIORITEIT: Water te koud EN Tank warm genoeg (AAN)
+            elif temp_water < TEMP_WATER_AAN and temp_tank > TEMP_TANK_AAN:
                 if current_status == 0:
-                    print(f"Warm water onder {TEMP_WATER_AAN}°C → Relay AAN")
+                    print(f"Warm water onder {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay AAN")
                     set_relay_via_api(RELAY_NUM, 1)
                 else:
-                    print(f"Warm water onder {TEMP_WATER_AAN}°C → Relay al aan")
+                    print(f"Warm water onder {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay al aan")
                 action_taken = True
                 
             if not action_taken:
-                # Geen actie nodig - tussen 58°C en 60°C
-                print(f"Geen actie nodig (water: {temp_water:.1f}°C, tussen {TEMP_WATER_AAN}-{TEMP_WATER_UIT}°C)")
+                # Geen actie nodig
+                if temp_water < TEMP_WATER_AAN:
+                    print(f"Water te koud ({temp_water:.1f}°C) maar tank niet warm genoeg ({temp_tank:.1f}°C)")
+                else:
+                    print(f"Geen actie nodig (water: {temp_water:.1f}°C)")
 
             time.sleep(60)
 
