@@ -15,6 +15,11 @@ SENSOR_WARM_WATER = "28-0b24a050eaec"
 RELAY_NUM = 1
 SWITCH_INTERVAL = timedelta(minutes=5)
 
+# HYSTERESIS INSTELLINGEN
+TEMP_WATER_AAN = 58.0   # Relay AAN als water < 58°C
+TEMP_WATER_UIT = 60.0   # Relay UIT als water > 60°C
+TEMP_TANK_AAN = 70.0    # Relay AAN als tank > 70°C (noodscenario)
+
 def get_relay_status_via_api(relay_num):
     """Lees relay status via web_interface API"""
     try:
@@ -71,6 +76,8 @@ def get_last_relay_switch_time(relay_num):
 
 def main():
     print("Start temperatuurgestuurde relaylogica (API mode)...")
+    print(f"Water: AAN < {TEMP_WATER_AAN}°C, UIT > {TEMP_WATER_UIT}°C")
+    print(f"Tank (nood): AAN > {TEMP_TANK_AAN}°C")
     
     while True:
         try:
@@ -100,20 +107,34 @@ def main():
                 time.sleep(60)
                 continue
 
-            if temp_water > 60.0:
+            # LOGICA MET HYSTERESIS
+            if temp_water > TEMP_WATER_UIT:
+                # Water te warm → UIT
                 if current_status == 1:
-                    print("Warm water boven 60°C → Relay UIT")
+                    print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay UIT")
                     set_relay_via_api(RELAY_NUM, 0)
                 else:
-                    print("Warm water boven 60°C → Relay al uit")
-            elif temp_tank > 70.0:
+                    print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay al uit")
+                    
+            elif temp_water < TEMP_WATER_AAN:
+                # Water te koud → AAN
                 if current_status == 0:
-                    print("Tank boven 70°C → Relay AAN")
+                    print(f"Warm water onder {TEMP_WATER_AAN}°C → Relay AAN")
                     set_relay_via_api(RELAY_NUM, 1)
                 else:
-                    print("Tank boven 70°C → Relay al aan")
+                    print(f"Warm water onder {TEMP_WATER_AAN}°C → Relay al aan")
+                    
+            elif temp_tank > TEMP_TANK_AAN:
+                # Tank te warm (noodscenario) → AAN
+                if current_status == 0:
+                    print(f"Tank boven {TEMP_TANK_AAN}°C → Relay AAN (nood)")
+                    set_relay_via_api(RELAY_NUM, 1)
+                else:
+                    print(f"Tank boven {TEMP_TANK_AAN}°C → Relay al aan")
+                    
             else:
-                print("Geen actie nodig")
+                # Geen actie nodig - tussen 58°C en 60°C
+                print(f"Geen actie nodig (water: {temp_water:.1f}°C, tussen {TEMP_WATER_AAN}-{TEMP_WATER_UIT}°C)")
 
             time.sleep(60)
 
