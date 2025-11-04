@@ -18,7 +18,7 @@ SWITCH_INTERVAL = timedelta(minutes=5)
 # HYSTERESIS INSTELLINGEN
 TEMP_WATER_AAN = 58.0   # Relay AAN als water < 58°C
 TEMP_WATER_UIT = 60.0   # Relay UIT als water > 60°C
-TEMP_TANK_AAN = 70.0    # Relay AAN als tank > 70°C (noodscenario)
+TEMP_TANK_AAN = 70.0    # Relay AAN als tank > 70°C 
 
 def get_relay_status_via_api(relay_num):
     """Lees relay status via web_interface API"""
@@ -113,19 +113,19 @@ def main():
             # 1. PRIORITEIT: Water te warm (UIT)
             if temp_water > TEMP_WATER_UIT:
                 if current_status == 1:
-                    print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay UIT")
+                    print(f"Warm water {TEMP_WATER_UIT}°C → Relay UIT")
                     set_relay_via_api(RELAY_NUM, 0)
                 else:
-                    print(f"Warm water boven {TEMP_WATER_UIT}°C → Relay al uit")
+                    print(f"Warm water {TEMP_WATER_UIT}°C → Relay al uit")
                 action_taken = True
                 
             # 2. PRIORITEIT: Water te koud EN Tank warm genoeg (AAN)
             elif temp_water < TEMP_WATER_AAN and temp_tank > TEMP_TANK_AAN:
                 if current_status == 0:
-                    print(f"Warm water onder {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay AAN")
+                    print(f"Warm water {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay AAN")
                     set_relay_via_api(RELAY_NUM, 1)
                 else:
-                    print(f"Warm water onder {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay al aan")
+                    print(f"Warm water {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay al aan")
                 action_taken = True
                 
             if not action_taken:
