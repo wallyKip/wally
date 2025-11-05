@@ -145,6 +145,6 @@ if __name__ == '__main__':
     print("Relay Test")
     for num in [1, 2]:
         print(f"Relay {num}: {read_relay_status(num)}")
-        set_relay_status(num, 1, "test")
+        # set_relay_status(num, 1, "test")
         time.sleep(1)
-        set_relay_status(num, 0, "test")
+        # set_relay_status(num, 0, "test")

@@ -12,7 +12,7 @@ SENSOR_TANK_BOVEN = "28-0b24a0539bdb"
 SENSOR_WARM_WATER = "28-0b24a050eaec"
 
 # Relay-instellingen
-RELAY_NUM = 1
+RELAY_NUM = 2
 SWITCH_INTERVAL = timedelta(minutes=5)
 
 # HYSTERESIS INSTELLINGEN
