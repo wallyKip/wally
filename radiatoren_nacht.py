@@ -8,7 +8,7 @@ DB_PATH = '/home/kip/wally/sensor_data.db'
 API_BASE = "http://localhost"
 
 # Relay-instellingen
-RELAY_RADIATOREN = 1  # Relay voor radiatoren
+RELAY_RADIATOREN = 2  # Relay voor radiatoren
 DAG_START = 6         # 06:00 - Stop met controleren / Zet relay AAN
 NACHT_START = 21      # 21:00 - Start cyclus
 AAN_TIJD = 10         # 10 minuten aan
