@@ -111,7 +111,7 @@ def main():
                     laatste_cyclus_status = None
 
                 # Controleer of het nu precies 06:00 is (1x per dag)
-                if now.hour == DAG_START and now.minute == 0:
+                if now.hour == DAG_START and now.minute < 5: 
                     if laatste_controle_dag_start != huidige_dag:
                         print(f"[{now.strftime('%H:%M:%S')}] 🕖 06:00 bereikt - Zet radiator relay AAN")
                         set_relay_via_api(RELAY_RADIATOREN, True, "dag_start_aan")
