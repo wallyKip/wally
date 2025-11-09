@@ -26,14 +26,17 @@ def get_relay_status_via_api(relay_num):
     return None
 
 def set_relay_via_api(relay_num, status, reason=""):
-    """Schakel relay via web_interface API"""
+    """Schakel relay via web_interface API (AAN=0, UIT=1)"""
     try:
-        url = f"{API_BASE}/relay/{relay_num}/{1 if status else 0}"
+        # Belangrijk: API is omgekeerd → 0 = AAN, 1 = UIT
+        url = f"{API_BASE}/relay/{relay_num}/{0 if status else 1}"
         response = requests.get(url, timeout=5)
         success = response.status_code == 200
         if success:
             status_tekst = "AAN" if status else "UIT"
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Radiatoren relay {status_tekst} - {reason}")
+        else:
+            print(f"API antwoord {response.status_code}: {response.text}")
         return success
     except Exception as e:
         print(f"API set fout: {e}")
