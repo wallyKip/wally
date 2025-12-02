@@ -1,23 +1,8 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Wire.h>
-#include <SSD1306Wire.h>
 #include <ArduinoJson.h>
 
-#include <DHT.h>
-
-// DHT sensor configuratie
-#define DHTPIN 5
-#define DHTTYPE DHT11   // of DHT11 als je die hebt
-
-DHT dht(DHTPIN, DHTTYPE);
-
-float temperature = 0;
-float humidity = 0;
-
-
-
-SSD1306Wire display(0x3c, 21, 22);
 const char* ssid = "MiloBoven";
 const char* password = "mmmmmmmm";
 const char* api_url = "http://192.168.1.10/api/latest";
@@ -39,7 +24,7 @@ unsigned long lastTempCheckTime = 0;
 const long tempCheckInterval = 600000; // 10 minuten = 600000 ms
 bool isTemperatureRising = false;
 
-const int buttonPin = 4;
+const int buttonPin = 5;              // CHANGED: Pomp button nu op D5
 bool lastButtonState = HIGH;
 bool pumpState = false;
 
@@ -49,46 +34,93 @@ int timerHours = 0;
 bool lastTimerButtonState = HIGH;
 unsigned long lastTimerButtonTime = 0;
 
+// LED pins voor tank temperatuur
+const int tankLEDs[] = {18, 15, 19, 21, 22};  // CHANGED: nieuwe volgorde
+const int numTankLEDs = 5;
+
+// LED pins voor warm water temperatuur
+const int wwLEDs[] = {27, 26, 25, 33, 32};
+const int numWWLEDs = 5;
+
+// Timer LED pin
+const int timerLED = 23;  // CHANGED: Timer LED nu op D23
+
+void testAllLEDs() {
+  Serial.println("Test alle LEDs...");
+  
+  // Zet alle tank LEDs aan
+  for (int i = 0; i < numTankLEDs; i++) {
+    digitalWrite(tankLEDs[i], HIGH);
+  }
+  
+  // Zet alle warm water LEDs aan
+  for (int i = 0; i < numWWLEDs; i++) {
+    digitalWrite(wwLEDs[i], HIGH);
+  }
+  
+  // Timer LED
+  digitalWrite(timerLED, HIGH);
+  
+  // Ook de andere LEDs in je systeem
+  digitalWrite(12, HIGH);
+  digitalWrite(13, HIGH);
+  digitalWrite(14, HIGH);
+  
+  // Houd alle LEDs 2 seconden aan
+  delay(20000);
+  
+  // Zet alle LEDs uit
+  for (int i = 0; i < numTankLEDs; i++) {
+    digitalWrite(tankLEDs[i], LOW);
+  }
+  for (int i = 0; i < numWWLEDs; i++) {
+    digitalWrite(wwLEDs[i], LOW);
+  }
+  
+  digitalWrite(timerLED, LOW);
+  digitalWrite(12, LOW);
+  digitalWrite(13, LOW);
+  digitalWrite(14, LOW);
+  
+  Serial.println("LED test voltooid");
+}
+
 void setup() {
   Serial.begin(115200);
+  
+  // Zet alle pin modes
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
   pinMode(14, OUTPUT);
-  pinMode(15, INPUT_PULLUP);
-  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(2, INPUT_PULLUP);           // Timer button op D2
+  pinMode(buttonPin, INPUT_PULLUP);   // Pomp button op D5
   
-  display.init();
-  display.flipScreenVertically(); 
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(0, 0, "Verbinden...");
-  display.display();
+  // Zet pin modes voor tank temperatuur LEDs
+  for (int i = 0; i < numTankLEDs; i++) {
+    pinMode(tankLEDs[i], OUTPUT);
+    digitalWrite(tankLEDs[i], LOW);
+  }
+  
+  // Zet pin modes voor warm water LEDs
+  for (int i = 0; i < numWWLEDs; i++) {
+    pinMode(wwLEDs[i], OUTPUT);
+    digitalWrite(wwLEDs[i], LOW);
+  }
+  
+  // Zet pin mode voor timer LED (D23)
+  pinMode(timerLED, OUTPUT);
+  digitalWrite(timerLED, LOW);
   
   Serial.println("Start ESP32...");
   WiFi.begin(ssid, password);
-  Serial.print("Verbinden met ");
-  Serial.println(ssid);
-
-  dht.begin();
+  
+  // Test alle LEDs
+  testAllLEDs();
 
   unsigned long startTime = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - startTime < 15000) {
     delay(500);
     Serial.print(".");
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nVerbonden! IP: " + WiFi.localIP().toString());
-    // TOEVOEGEN: Update display na verbinding
-    display.clear();
-    display.drawString(0, 0, "Verbonden!");
-    display.drawString(0, 20, WiFi.localIP().toString());
-    display.display();
-    
-  } else {
-    Serial.println("\nNiet verbonden");
-    display.clear();
-    display.drawString(0, 0, "WiFi fout!");
-    display.display();
   }
 }
 
@@ -101,6 +133,18 @@ bool parseRelayStatus(String json, int relayNumber) {
   }
   
   return false;
+}
+
+void updateTimerLED() {
+  // Timer LED (D23) aan voor 1, 2 of 3 uur, uit voor 0 uur
+  if (timerHours >= 1 && timerHours <= 3) {
+    digitalWrite(timerLED, HIGH);
+  } else {
+    // FORCEER laag met kleine vertraging voor zekerheid
+    digitalWrite(timerLED, LOW);
+    delayMicroseconds(10); // Korte vertraging
+    digitalWrite(timerLED, LOW); // Nogmaals voor zekerheid
+  }
 }
 
 void getRelayStatus() {
@@ -158,6 +202,7 @@ void handleButton() {
       Serial.println("Timer gestopt");
       timerHours = 0;
       pumpOffUntil = 0;
+      updateTimerLED(); // Update timer LED
     }
 
     togglePump();
@@ -184,11 +229,9 @@ void blinkLED13() {
   if (tempWally > 75) {
     // Boven 75°C: LED altijd AAN
     digitalWrite(13, HIGH);
-    // Serial.println("LED13: AAN (temp > 75)");
   } else if (isTemperatureRising && tempWally >= 65 && tempWally <= 75) {
     // Temperatuur stijgt tussen 65-75°C: LED altijd AAN
     digitalWrite(13, HIGH);
-    // Serial.println("LED13: AAN (stijgend)");
   } else if (!isTemperatureRising && tempWally >= 65 && tempWally <= 75) {
     // Temperatuur daalt tussen 65-75°C: LED knipperen
     if (currentMillis - previousBlinkMillis >= blinkInterval) {
@@ -220,45 +263,73 @@ float parseTemperature(String json, String sensorName) {
   return tempStr.toFloat();
 }
 
-void updateDisplay() {
-  display.clear();
+void updateTankLEDs() {
+  float somTank = tempTankBoven + tempTankMidden + tempTankOnder;
   
-  // Kolom 1 (0-40 pixels) - Radiatoren & Wally
-  display.setFont(ArialMT_Plain_24);
-  display.drawString(0, 0, String(tempWally,0));
-  display.drawString(0, 30, String(tempRadiatoren,0));
+  // Zet alle tank LEDs uit
+  for (int i = 0; i < numTankLEDs; i++) {
+    digitalWrite(tankLEDs[i], LOW);
+  }
   
-
-  display.setFont(ArialMT_Plain_10);
-  // Timer indicator (x'en onder radiatoren)
-  if (timerHours > 0) {
-    String timerIndicators = "";
-    for (int i = 0; i < timerHours; i++) {
-      timerIndicators += "x";
+  // Zet LEDs aan gebaseerd op som temperatuur
+  if (somTank > 180) {
+    // Alle LEDs aan (18, 15, 19, 21, 22)
+    for (int i = 0; i < numTankLEDs; i++) {
+      digitalWrite(tankLEDs[i], HIGH);
     }
-    display.drawString(0, 54, timerIndicators);
+  } else if (somTank > 166) {
+    // 4 LEDs aan (18, 15, 19, 21)
+    for (int i = 0; i < 4; i++) {
+      digitalWrite(tankLEDs[i], HIGH);
+    }
+  } else if (somTank > 134) {
+    // 3 LEDs aan (18, 15, 19)
+    for (int i = 0; i < 3; i++) {
+      digitalWrite(tankLEDs[i], HIGH);
+    }
+  } else if (somTank > 112) {
+    // 2 LEDs aan (18, 15)
+    for (int i = 0; i < 2; i++) {
+      digitalWrite(tankLEDs[i], HIGH);
+    }
+  } else if (somTank > 90) {
+    // 1 LED aan (18)
+    digitalWrite(tankLEDs[0], HIGH);
   }
-  
-  // Kolom 2 (45-85 pixels) - Grote tank
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(45, 0, String(tempTankBoven,0));
-  display.drawString(45, 18, String(tempTankMidden,0));
-  display.drawString(45, 36, String(tempTankOnder,0));
-  
-  // Kolom 3 (90-128 pixels) - Warm water + DHT sensor
-  display.setFont(ArialMT_Plain_24);
-  display.drawString(90, 0, String(tempWW,0)); // Warm water
-  
-  // DHT sensor data
-  if (temperature != -999) {
-    display.drawString(90, 30, String(temperature,0));
-  } else {
-    display.drawString(90, 30, "--C");
-  }
-  
-  display.display();
 }
 
+void updateWWLEDs() {
+  // Zet alle WW LEDs uit
+  for (int i = 0; i < numWWLEDs; i++) {
+    digitalWrite(wwLEDs[i], LOW);
+  }
+  
+  // Zet LEDs aan gebaseerd op tempWW
+  if (tempWW > 60) {
+    // Alle LEDs aan (27, 26, 25, 33, 32)
+    for (int i = 0; i < numWWLEDs; i++) {
+      digitalWrite(wwLEDs[i], HIGH);
+    }
+  } else if (tempWW > 53) {
+    // 4 LEDs aan (27, 26, 25, 33)
+    for (int i = 0; i < 4; i++) {
+      digitalWrite(wwLEDs[i], HIGH);
+    }
+  } else if (tempWW > 47) {
+    // 3 LEDs aan (27, 26, 25)
+    for (int i = 0; i < 3; i++) {
+      digitalWrite(wwLEDs[i], HIGH);
+    }
+  } else if (tempWW > 41) {
+    // 2 LEDs aan (27, 26)
+    for (int i = 0; i < 2; i++) {
+      digitalWrite(wwLEDs[i], HIGH);
+    }
+  } else if (tempWW > 35) {
+    // 1 LED aan (27)
+    digitalWrite(wwLEDs[0], HIGH);
+  }
+}
 
 void getTemperatureData() {
   if (WiFi.status() == WL_CONNECTED) {
@@ -279,14 +350,16 @@ void getTemperatureData() {
       tempWW = parseTemperature(payload, "Warm water");
       tempWWUitgang = parseTemperature(payload, "Warm water uitgang");
       
-      updateDisplay(); // Toon nieuwe layout
+      // Update de LED indicaties
+      updateTankLEDs();
+      updateWWLEDs();
     }
     http.end();
   }
 }
 
 void handleTimerButton() {
-  bool currentState = digitalRead(15);
+  bool currentState = digitalRead(2);  // Timer button op D2
   
   // Alleen detecteren op neergaande flank (HIGH -> LOW)
   if (currentState == LOW && lastTimerButtonState == HIGH && 
@@ -309,54 +382,32 @@ void handleTimerButton() {
       pumpOffUntil = 0; // Timer uitgezet
       Serial.println("Timer: uit");
     }
+    
+    // Update timer LED
+    updateTimerLED();
   }
   
   lastTimerButtonState = currentState;
 }
 
-void readDHT() {
-  Serial.println("=== DHT11 Uitlezen ===");
-  
-  // Probeer meerdere keren
-  for(int i = 0; i < 3; i++) {
-    temperature = dht.readTemperature();
-    humidity = dht.readHumidity();
-    
-    Serial.print("Poging "); Serial.print(i+1);
-    Serial.print(": Temp="); Serial.print(temperature);
-    Serial.print(", Hum="); Serial.println(humidity);
-    
-    if (!isnan(temperature) && !isnan(humidity)) {
-      Serial.println("SUCCES! DHT11 werkt.");
-      return;
-    }
-    delay(1000);
-  }
-  
-  Serial.println("FOUT: DHT11 geeft geen data");
-  temperature = -999;
-  humidity = -999;
-}
-
 void loop() {
-  handleButton();        // Aan/uit button
-  handleTimerButton();   // Timer button
+  handleButton();        // Aan/uit button op D5
+  handleTimerButton();   // Timer button op D2
   blinkLED13();          // Temperatuur trend
-  updateDisplay();       // Scherm continu updaten
 
   static unsigned long lastDataTime = 0;
-  if (millis() - lastDataTime >= 30000) { // Elke 3 seconden
+  if (millis() - lastDataTime >= 30000) { // Elke 30 seconden
     getTemperatureData();
     getRelayStatus();
     updateLEDs();
-    readDHT();
     lastDataTime = millis();
   }
 
-    // Check timer - zet pomp aan als timer verstreken
+  // Check timer - zet pomp aan als timer verstreken
   if (pumpOffUntil > 0 && millis() >= pumpOffUntil) {
     pumpOffUntil = 0;
     timerHours = 0;
+    updateTimerLED(); // Zet timer LED uit
     togglePump(); 
   }
 }
