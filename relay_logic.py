@@ -10,6 +10,7 @@ API_BASE = "http://localhost"
 # Sensor-ID's
 SENSOR_TANK_BOVEN = "28-0b24a0539bdb"
 SENSOR_WARM_WATER = "28-0b24a050eaec"
+SENSOR_WALLY_UITGANG = "28-0b24a0569043"
 
 # Relay-instellingen
 RELAY_NUM = 1
@@ -19,6 +20,7 @@ SWITCH_INTERVAL = timedelta(minutes=5)
 TEMP_WATER_AAN = 58.0   # Relay AAN als water < 58°C
 TEMP_WATER_UIT = 60.0   # Relay UIT als water > 60°C
 TEMP_TANK_AAN = 70.0    # Relay AAN als tank > 70°C 
+TEMP_WALLY = 70.0   # NIEUW: Relay AAN als Wally > 70°C
 
 def get_relay_status_via_api(relay_num):
     """Lees relay status via web_interface API"""
@@ -77,20 +79,21 @@ def get_last_relay_switch_time(relay_num):
 def main():
     print("Start temperatuurgestuurde relaylogica (API mode)...")
     print(f"Water: UIT > {TEMP_WATER_UIT}°C")
-    print(f"AAN alleen als: Water < {TEMP_WATER_AAN}°C EN Tank > {TEMP_TANK_AAN}°C")
+    print(f"AAN alleen als: Water < {TEMP_WATER_AAN}°C EN Tank > {TEMP_TANK_AAN}°C EN Wally > {TEMP_WALLY}°C")
     
     while True:
         try:
             temp_tank, ts1 = get_latest_temp(SENSOR_TANK_BOVEN)
             temp_water, ts2 = get_latest_temp(SENSOR_WARM_WATER)
+            temp_wally, ts3 = get_latest_temp(SENSOR_WALLY_UITGANG)  # NIEUW
             now = datetime.now()
 
-            if temp_tank is None or temp_water is None:
+            if temp_tank is None or temp_water is None or temp_wally is None:  # AANGEPAST
                 print("Geen temperatuurdatas beschikbaar.")
                 time.sleep(60)
                 continue
 
-            print(f"[{now.strftime('%H:%M:%S')}] Tank: {temp_tank:.1f}°C, Warm water: {temp_water:.1f}°C")
+            print(f"[{now.strftime('%H:%M:%S')}] Tank: {temp_tank:.1f}°C, Warm water: {temp_water:.1f}°C, Wally: {temp_wally:.1f}°C")  # AANGEPAST
 
             last_switch = get_last_relay_switch_time(RELAY_NUM)
             if last_switch and now - last_switch < SWITCH_INTERVAL:
@@ -119,19 +122,25 @@ def main():
                     print(f"Warm water {TEMP_WATER_UIT}°C → Relay al uit")
                 action_taken = True
                 
-            # 2. PRIORITEIT: Water te koud EN Tank warm genoeg (AAN)
-            elif temp_water < TEMP_WATER_AAN and temp_tank > TEMP_TANK_AAN:
+            # 2. PRIORITEIT: Water te koud EN Tank warm genoeg EN Wally warm genoeg (AAN)
+            elif (temp_water < TEMP_WATER_AAN and 
+                  temp_tank > TEMP_TANK_AAN and 
+                  temp_wally > TEMP_WALLY):  # NIEUWE VOORWAARDE
                 if current_status == 0:
-                    print(f"Warm water {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay AAN")
+                    print(f"Water < {TEMP_WATER_AAN}°C EN Tank > {TEMP_TANK_AAN}°C EN Wally > {TEMP_WALLY}°C → Relay AAN")
                     set_relay_via_api(RELAY_NUM, 1)
                 else:
-                    print(f"Warm water {TEMP_WATER_AAN}°C EN Tank boven {TEMP_TANK_AAN}°C → Relay al aan")
+                    print(f"Water < {TEMP_WATER_AAN}°C EN Tank > {TEMP_TANK_AAN}°C EN Wally > {TEMP_WALLY}°C → Relay al aan")
                 action_taken = True
                 
             if not action_taken:
-                # Geen actie nodig
-                if temp_water < TEMP_WATER_AAN:
-                    print(f"Water te koud ({temp_water:.1f}°C) maar tank niet warm genoeg ({temp_tank:.1f}°C)")
+                # Geen actie nodig - toon reden
+                if temp_water >= TEMP_WATER_AAN:
+                    print(f"Geen actie nodig (water: {temp_water:.1f}°C >= {TEMP_WATER_AAN}°C)")
+                elif temp_tank <= TEMP_TANK_AAN:
+                    print(f"Tank niet warm genoeg ({temp_tank:.1f}°C <= {TEMP_TANK_AAN}°C)")
+                elif temp_wally <= TEMP_WALLY:  # NIEUW
+                    print(f"Wally niet warm genoeg ({temp_wally:.1f}°C <= {TEMP_WALLY}°C)")
                 else:
                     print(f"Geen actie nodig (water: {temp_water:.1f}°C)")
 

@@ -4,19 +4,6 @@
 #include <SSD1306Wire.h>
 #include <ArduinoJson.h>
 
-#include <DHT.h>
-
-// DHT sensor configuratie
-#define DHTPIN 5
-#define DHTTYPE DHT11   // of DHT11 als je die hebt
-
-DHT dht(DHTPIN, DHTTYPE);
-
-float temperature = 0;
-float humidity = 0;
-
-
-
 SSD1306Wire display(0x3c, 21, 22);
 const char* ssid = "MiloBoven";
 const char* password = "mmmmmmmm";
@@ -58,7 +45,6 @@ void setup() {
   pinMode(buttonPin, INPUT_PULLUP);
   
   display.init();
-  display.flipScreenVertically(); 
   display.setFont(ArialMT_Plain_16);
   display.drawString(0, 0, "Verbinden...");
   display.display();
@@ -67,8 +53,6 @@ void setup() {
   WiFi.begin(ssid, password);
   Serial.print("Verbinden met ");
   Serial.println(ssid);
-
-  dht.begin();
 
   unsigned long startTime = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - startTime < 15000) {
@@ -222,40 +206,28 @@ float parseTemperature(String json, String sensorName) {
 
 void updateDisplay() {
   display.clear();
-  
-  // Kolom 1 (0-40 pixels) - Radiatoren & Wally
-  display.setFont(ArialMT_Plain_24);
-  display.drawString(0, 0, String(tempWally,0));
-  display.drawString(0, 30, String(tempRadiatoren,0));
-  
 
+  //
+  // LINKERKOLOM – 2 GROTE REGELS
+  //
   display.setFont(ArialMT_Plain_10);
-  // Timer indicator (x'en onder radiatoren)
-  if (timerHours > 0) {
-    String timerIndicators = "";
-    for (int i = 0; i < timerHours; i++) {
-      timerIndicators += "x";
-    }
-    display.drawString(0, 54, timerIndicators);
-  }
-  
-  // Kolom 2 (45-85 pixels) - Grote tank
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(45, 0, String(tempTankBoven,0));
-  display.drawString(45, 18, String(tempTankMidden,0));
-  display.drawString(45, 36, String(tempTankOnder,0));
-  
-  // Kolom 3 (90-128 pixels) - Warm water + DHT sensor
+  display.drawString(0, 0, "Wally");
+  display.setFont(ArialMT_Plain_24);   // grote letters
+  display.drawString(0, 8, "  " + String((int)tempWally));
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 34, "Warm Water");
   display.setFont(ArialMT_Plain_24);
-  display.drawString(90, 0, String(tempWW,0)); // Warm water
-  
-  // DHT sensor data
-  if (temperature != -999) {
-    display.drawString(90, 30, String(temperature,0));
-  } else {
-    display.drawString(90, 30, "--C");
-  }
-  
+  display.drawString(0, 41, "  " +  String((int)tempWW));
+
+  //
+  // RECHTERKOLOM – 3 KLEINE REGELS
+  //
+  display.setFont(ArialMT_Plain_16);
+
+  display.drawString(90, 0,  String((int)tempTankBoven));
+  display.drawString(90, 22, String((int)tempTankMidden));
+  display.drawString(90, 44, String((int)tempTankOnder));
+
   display.display();
 }
 
@@ -279,7 +251,7 @@ void getTemperatureData() {
       tempWW = parseTemperature(payload, "Warm water");
       tempWWUitgang = parseTemperature(payload, "Warm water uitgang");
       
-      updateDisplay(); // Toon nieuwe layout
+      updateDisplay();
     }
     http.end();
   }
@@ -314,30 +286,6 @@ void handleTimerButton() {
   lastTimerButtonState = currentState;
 }
 
-void readDHT() {
-  Serial.println("=== DHT11 Uitlezen ===");
-  
-  // Probeer meerdere keren
-  for(int i = 0; i < 3; i++) {
-    temperature = dht.readTemperature();
-    humidity = dht.readHumidity();
-    
-    Serial.print("Poging "); Serial.print(i+1);
-    Serial.print(": Temp="); Serial.print(temperature);
-    Serial.print(", Hum="); Serial.println(humidity);
-    
-    if (!isnan(temperature) && !isnan(humidity)) {
-      Serial.println("SUCCES! DHT11 werkt.");
-      return;
-    }
-    delay(1000);
-  }
-  
-  Serial.println("FOUT: DHT11 geeft geen data");
-  temperature = -999;
-  humidity = -999;
-}
-
 void loop() {
   handleButton();        // Aan/uit button
   handleTimerButton();   // Timer button
@@ -345,15 +293,14 @@ void loop() {
   updateDisplay();       // Scherm continu updaten
 
   static unsigned long lastDataTime = 0;
-  if (millis() - lastDataTime >= 30000) { // Elke 3 seconden
+  if (millis() - lastDataTime >= 30000) { // Elke 30 seconden
     getTemperatureData();
     getRelayStatus();
     updateLEDs();
-    readDHT();
     lastDataTime = millis();
   }
 
-    // Check timer - zet pomp aan als timer verstreken
+  // Check timer - zet pomp aan als timer verstreken
   if (pumpOffUntil > 0 && millis() >= pumpOffUntil) {
     pumpOffUntil = 0;
     timerHours = 0;
