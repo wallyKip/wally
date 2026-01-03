@@ -95,6 +95,7 @@ def main():
                 time.sleep(60)
                 continue
 
+
             print(f"[{now.strftime('%H:%M:%S')}] Tank: {temp_tank:.1f}°C, Warm water: {temp_water:.1f}°C, Wally: {temp_wally:.1f}°C")  # AANGEPAST
 
             last_switch = get_last_relay_switch_time(RELAY_NUM)
