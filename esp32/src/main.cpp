@@ -3,6 +3,10 @@
 #include <Wire.h>
 #include <ArduinoJson.h>
 
+<<<<<<< HEAD
+=======
+SSD1306Wire display(0x3c, 21, 22);
+>>>>>>> b5a65f03b29a8417608164bd9c80ce58fdbd9159
 const char* ssid = "MiloBoven";
 const char* password = "mmmmmmmm";
 const char* api_url = "http://192.168.1.10/api/latest";
@@ -95,6 +99,7 @@ void setup() {
   pinMode(2, INPUT_PULLUP);           // Timer button op D2
   pinMode(buttonPin, INPUT_PULLUP);   // Pomp button op D5
   
+<<<<<<< HEAD
   // Zet pin modes voor tank temperatuur LEDs
   for (int i = 0; i < numTankLEDs; i++) {
     pinMode(tankLEDs[i], OUTPUT);
@@ -116,6 +121,17 @@ void setup() {
   
   // Test alle LEDs
   testAllLEDs();
+=======
+  display.init();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(0, 0, "Verbinden...");
+  display.display();
+  
+  Serial.println("Start ESP32...");
+  WiFi.begin(ssid, password);
+  Serial.print("Verbinden met ");
+  Serial.println(ssid);
+>>>>>>> b5a65f03b29a8417608164bd9c80ce58fdbd9159
 
   unsigned long startTime = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - startTime < 15000) {
@@ -263,6 +279,7 @@ float parseTemperature(String json, String sensorName) {
   return tempStr.toFloat();
 }
 
+<<<<<<< HEAD
 void updateTankLEDs() {
   float somTank = tempTankBoven + tempTankMidden + tempTankOnder;
   
@@ -296,6 +313,33 @@ void updateTankLEDs() {
     // 1 LED aan (18)
     digitalWrite(tankLEDs[0], HIGH);
   }
+=======
+void updateDisplay() {
+  display.clear();
+
+  //
+  // LINKERKOLOM – 2 GROTE REGELS
+  //
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 0, "Wally");
+  display.setFont(ArialMT_Plain_24);   // grote letters
+  display.drawString(0, 8, "  " + String((int)tempWally));
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 34, "Warm Water");
+  display.setFont(ArialMT_Plain_24);
+  display.drawString(0, 41, "  " +  String((int)tempWW));
+
+  //
+  // RECHTERKOLOM – 3 KLEINE REGELS
+  //
+  display.setFont(ArialMT_Plain_16);
+
+  display.drawString(90, 0,  String((int)tempTankBoven));
+  display.drawString(90, 22, String((int)tempTankMidden));
+  display.drawString(90, 44, String((int)tempTankOnder));
+
+  display.display();
+>>>>>>> b5a65f03b29a8417608164bd9c80ce58fdbd9159
 }
 
 void updateWWLEDs() {
@@ -350,9 +394,13 @@ void getTemperatureData() {
       tempWW = parseTemperature(payload, "Warm water");
       tempWWUitgang = parseTemperature(payload, "Warm water uitgang");
       
+<<<<<<< HEAD
       // Update de LED indicaties
       updateTankLEDs();
       updateWWLEDs();
+=======
+      updateDisplay();
+>>>>>>> b5a65f03b29a8417608164bd9c80ce58fdbd9159
     }
     http.end();
   }

@@ -95,7 +95,10 @@ def main():
                 time.sleep(60)
                 continue
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b5a65f03b29a8417608164bd9c80ce58fdbd9159
             print(f"[{now.strftime('%H:%M:%S')}] Tank: {temp_tank:.1f}°C, Warm water: {temp_water:.1f}°C, Wally: {temp_wally:.1f}°C")  # AANGEPAST
 
             last_switch = get_last_relay_switch_time(RELAY_NUM)
@@ -125,12 +128,15 @@ def main():
                     print(f"Warm water {TEMP_WATER_UIT}°C → Relay al uit")
                 action_taken = True
                 
+<<<<<<< HEAD
             # 1b. PRIORITEIT: Tank of Wally te koud (UIT)
             elif current_status == 1 and (temp_tank <= TEMP_TANK_AAN or temp_wally <= TEMP_WALLY):
                 print("Tank of Wally te koud → Relay UIT")
                 set_relay_via_api(RELAY_NUM, 0)
                 action_taken = True
 
+=======
+>>>>>>> b5a65f03b29a8417608164bd9c80ce58fdbd9159
             # 2. PRIORITEIT: Water te koud EN Tank warm genoeg EN Wally warm genoeg (AAN)
             elif (temp_water < TEMP_WATER_AAN and 
                   temp_tank > TEMP_TANK_AAN and 
