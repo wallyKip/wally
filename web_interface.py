@@ -402,7 +402,7 @@ class SensorHandler(BaseHTTPRequestHandler):
     </table>
     
     <br><br>
-
+"""
     # Afkoelvoorspelling grote tank
     cooling = predict_cooling_time(ambient=20.0, target_temp=30.0)
     if cooling:
@@ -435,11 +435,14 @@ class SensorHandler(BaseHTTPRequestHandler):
 
     html += cooling_html
 
+        html += """
     <br><br>
 
     <table>
         <tr><h1>Pompen</h1></tr>
         <tr>"""
+
+
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
             <td><div onclick="setRelay(1, {1 if not relay_status[1]['status'] else 0})">Warm Water</div></td>
