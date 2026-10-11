@@ -6,11 +6,15 @@ from relay_manager import read_relay_status
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 
-# Alleen de 3 sensoren van de grote tank
-BIG_TANK_SENSORS = {
+SENSOR_MAPPING = {
+    "28-0b24a04fc39f": "A - Naar radiatoren",
     "28-0b24a0539bdb": "B - Grote tank boven",
     "28-0b24a0545ad2": "C - Grote tank midden",
     "28-0b24a0507904": "D - Grote tank onder",
+    "28-0b24a0569043": "E - Wally uitgang",
+    "28-0b24a050eaec": "F - Warm water",
+    "28-0b24a03a4d26": "G - Warm water ingang",
+    "28-0b24a0551b3c": "H - Warm water uitgang"
 }
 
 def read_sensor_temperature(sensor_id):
@@ -70,12 +74,12 @@ def log_relay_status():
     conn.close()
 
 def collect_data():
-    """Verzamel data van de 3 grote-tank sensoren + relay status"""
+    """Verzamel data van alle sensoren en relais"""
     print(f"{datetime.now()} - Data verzamelen...")
 
-    # Sensoren
+    # Sensoren: allemaal in één batch met hetzelfde timestamp
     readings = []
-    for sensor_id, sensor_name in BIG_TANK_SENSORS.items():
+    for sensor_id, sensor_name in SENSOR_MAPPING.items():
         temp = read_sensor_temperature(sensor_id)
         if temp is not None:
             readings.append((sensor_id, temp))
@@ -83,17 +87,17 @@ def collect_data():
         else:
             print(f"  {sensor_name}: ERROR")
 
-    if len(readings) == len(BIG_TANK_SENSORS):
+    if readings:
         save_temperatures_batch(readings)
-        print(f"  → {len(readings)} metingen opgeslagen met timestamp {datetime.now().strftime('%H:%M:%S')}")
+        print(f"  → {len(readings)}/{len(SENSOR_MAPPING)} metingen opgeslagen met timestamp {datetime.now().strftime('%H:%M:%S')}")
     else:
-        print(f"  → Onvolledige meting ({len(readings)}/{len(BIG_TANK_SENSORS)}), niet opgeslagen")
+        print("  → Geen enkele meting gelukt, niets opgeslagen")
 
     # Relais
     log_relay_status()
 
 def main():
-    print("Sensor Logger gestart (grote tank + relais). Druk op Ctrl+C om te stoppen.")
+    print("Sensor Logger gestart (alle sensoren + relais). Druk op Ctrl+C om te stoppen.")
     while True:
         try:
             collect_data()
