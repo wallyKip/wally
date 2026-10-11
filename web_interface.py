@@ -403,37 +403,37 @@ class SensorHandler(BaseHTTPRequestHandler):
     
     <br><br>
 """
-    # Afkoelvoorspelling grote tank
-    cooling = predict_cooling_time(ambient=20.0, target_temp=30.0)
-    if cooling:
-        cooling_html = f"""
-        <h1>Afkoeling grote tank</h1>
-        <table>
-            <tr>
-                <td>Huidig gemiddelde</td>
-                <td>{cooling['current_avg']} &deg;C</td>
-            </tr>
-            <tr>
-                <td>Tijd tot {cooling['target_temp']:.0f} &deg;C</td>
-                <td><strong>{cooling['hours']} uur</strong></td>
-            </tr>
-            <tr>
-                <td>Afkoelcoëfficiënt k</td>
-                <td>{cooling['k']:.5f} /uur</td>
-            </tr>
-            <tr>
-                <td>Gebaseerd op</td>
-                <td>{cooling['samples']} metingen</td>
-            </tr>
-        </table>
-        """
-    else:
-        cooling_html = """
-        <h1>Afkoeling grote tank</h1>
-        <p><em>Onvoldoende data (min. 5 metingen met alle 3 sensoren boven omgevingstemperatuur nodig).</em></p>
-        """
+        # Afkoelvoorspelling grote tank
+        cooling = predict_cooling_time(ambient=20.0, target_temp=30.0)
+        if cooling:
+            cooling_html = f"""
+            <h1>Afkoeling grote tank</h1>
+            <table>
+                <tr>
+                    <td>Huidig gemiddelde</td>
+                    <td>{cooling['current_avg']} &deg;C</td>
+                </tr>
+                <tr>
+                    <td>Tijd tot {cooling['target_temp']:.0f} &deg;C</td>
+                    <td><strong>{cooling['hours']} uur</strong></td>
+                </tr>
+                <tr>
+                    <td>Afkoelcoëfficiënt k</td>
+                    <td>{cooling['k']:.5f} /uur</td>
+                </tr>
+                <tr>
+                    <td>Gebaseerd op</td>
+                    <td>{cooling['samples']} metingen</td>
+                </tr>
+            </table>
+            """
+        else:
+            cooling_html = """
+            <h1>Afkoeling grote tank</h1>
+            <p><em>Onvoldoende data (min. 5 metingen met alle 3 sensoren boven omgevingstemperatuur nodig).</em></p>
+            """
 
-    html += cooling_html
+        html += cooling_html
 
         html += """
     <br><br>
