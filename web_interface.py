@@ -252,6 +252,10 @@ class SensorHandler(BaseHTTPRequestHandler):
     def serve_main_page(self):
         sensor_data = get_latest_readings()
         relay_status = get_current_relay_status()
+        # Fallback: zorg dat beide relays altijd een entry hebben
+        for n in [1, 2]:
+            if n not in relay_status:
+                relay_status[n] = {'status': 0, 'last_updated': None}
         
         html = f"""<html>
 <head>

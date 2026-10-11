@@ -2,6 +2,7 @@
 import sqlite3
 import time
 from datetime import datetime
+from relay_manager import read_relay_status
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 
@@ -39,10 +40,40 @@ def save_temperatures_batch(readings):
     conn.commit()
     conn.close()
 
+def log_relay_status():
+    """Lees status van relais en sla op in zowel relay_status als current_relay_status."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    for relay_num in [1, 2]:
+        try:
+            status = read_relay_status(relay_num)
+            status_int = 1 if status else 0
+
+            # historische log
+            c.execute('''
+                INSERT INTO relay_status (relay_number, status, reason)
+                VALUES (?, ?, ?)
+            ''', (relay_num, status_int, "data_collector"))
+
+            # actuele status (voor web interface)
+            c.execute('''
+                INSERT OR REPLACE INTO current_relay_status (relay_number, status, last_updated)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+            ''', (relay_num, status_int))
+
+            print(f"  Relay {relay_num}: {'AAN' if status else 'UIT'}")
+        except Exception as e:
+            print(f"  Relay {relay_num}: FOUT ({e})")
+
+    conn.commit()
+    conn.close()
+
 def collect_data():
-    """Verzamel data van de 3 grote-tank sensoren"""
+    """Verzamel data van de 3 grote-tank sensoren + relay status"""
     print(f"{datetime.now()} - Data verzamelen...")
 
+    # Sensoren
     readings = []
     for sensor_id, sensor_name in BIG_TANK_SENSORS.items():
         temp = read_sensor_temperature(sensor_id)
@@ -58,8 +89,11 @@ def collect_data():
     else:
         print(f"  → Onvolledige meting ({len(readings)}/{len(BIG_TANK_SENSORS)}), niet opgeslagen")
 
+    # Relais
+    log_relay_status()
+
 def main():
-    print("Sensor Logger gestart (alleen grote tank). Druk op Ctrl+C om te stoppen.")
+    print("Sensor Logger gestart (grote tank + relais). Druk op Ctrl+C om te stoppen.")
     while True:
         try:
             collect_data()
