@@ -2,23 +2,18 @@
 import sqlite3
 import time
 from datetime import datetime
-from relay_manager import read_relay_status
 
 DB_PATH = '/home/kip/wally/sensor_data.db'
 
-SENSOR_MAPPING = {
-    "28-0b24a04fc39f": "A - Naar radiatoren",
+# Alleen de 3 sensoren van de grote tank
+BIG_TANK_SENSORS = {
     "28-0b24a0539bdb": "B - Grote tank boven",
     "28-0b24a0545ad2": "C - Grote tank midden",
     "28-0b24a0507904": "D - Grote tank onder",
-    "28-0b24a0569043": "E - Wally uitgang",
-    "28-0b24a050eaec": "F - Warm water",
-    "28-0b24a03a4d26": "G - Warm water ingang",
-    "28-0b24a0551b3c": "H - Warm water uitgang"
 }
 
 def read_sensor_temperature(sensor_id):
-    """Lees temperatuur van een specifieke sensor"""
+    """Lees temperatuur van een specifieke sensor (1 decimaal)"""
     sensor_path = f"/sys/bus/w1/devices/{sensor_id}/w1_slave"
     try:
         with open(sensor_path, 'r') as f:
@@ -26,64 +21,49 @@ def read_sensor_temperature(sensor_id):
             if 'YES' in content:
                 temp_line = content.split('t=')[-1]
                 temp = float(temp_line) / 1000.0
-                return round(temp)
+                return round(temp, 1)
     except:
         return None
     return None
 
-def save_temperature(sensor_id, temperature):
-    """Sla temperatuurmeting op in de database"""
+def save_temperatures_batch(readings):
+    """Sla meerdere sensormetingen op met hetzelfde timestamp."""
     conn = sqlite3.connect(DB_PATH)
-     
     c = conn.cursor()
-    c.execute(
-        "INSERT INTO sensor_readings (sensor_id, temperature) VALUES (?, ?)",
-        (sensor_id, temperature)
-    )
-    conn.commit()
-    conn.close()
-
-def log_relay_status():
-    """Lees status van relais via relay_manager en sla op in database"""
-    conn = sqlite3.connect(DB_PATH)
-     
-    c = conn.cursor()
-
-    for relay_num in [1, 2]:
-        try:
-            status = read_relay_status(relay_num)
-            c.execute('''
-                INSERT INTO relay_status (relay_number, status, reason)
-                VALUES (?, ?, ?)
-            ''', (relay_num, status, "data_collector"))
-            print(f"  Relay {relay_num}: {'AAN' if status else 'UIT'}")
-        except Exception as e:
-            print(f"  Relay {relay_num}: FOUT ({e})")
-
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    for sensor_id, temperature in readings:
+        c.execute(
+            "INSERT INTO sensor_readings (sensor_id, temperature, timestamp) VALUES (?, ?, ?)",
+            (sensor_id, temperature, now)
+        )
     conn.commit()
     conn.close()
 
 def collect_data():
-    """Verzamel data van sensoren en relais"""
+    """Verzamel data van de 3 grote-tank sensoren"""
     print(f"{datetime.now()} - Data verzamelen...")
 
-    for sensor_id, sensor_name in SENSOR_MAPPING.items():
+    readings = []
+    for sensor_id, sensor_name in BIG_TANK_SENSORS.items():
         temp = read_sensor_temperature(sensor_id)
         if temp is not None:
-            save_temperature(sensor_id, temp)
+            readings.append((sensor_id, temp))
             print(f"  {sensor_name}: {temp:.1f}°C")
         else:
             print(f"  {sensor_name}: ERROR")
 
-    # Log relay status
-    log_relay_status()
+    if len(readings) == len(BIG_TANK_SENSORS):
+        save_temperatures_batch(readings)
+        print(f"  → {len(readings)} metingen opgeslagen met timestamp {datetime.now().strftime('%H:%M:%S')}")
+    else:
+        print(f"  → Onvolledige meting ({len(readings)}/{len(BIG_TANK_SENSORS)}), niet opgeslagen")
 
 def main():
-    print("Sensor Logger gestart. Druk op Ctrl+C om te stoppen.")
+    print("Sensor Logger gestart (alleen grote tank). Druk op Ctrl+C om te stoppen.")
     while True:
         try:
             collect_data()
-            time.sleep(300)  # Elke minuut
+            time.sleep(300)  # elke 5 minuten
         except KeyboardInterrupt:
             print("\nGestopt door gebruiker.")
             break
