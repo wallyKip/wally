@@ -2,6 +2,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import sqlite3
 import json
+import math
 from datetime import datetime, timedelta
 from relay_manager import init_gpio, get_current_relay_status, set_relay_status
 from socketserver import ThreadingMixIn
@@ -102,6 +103,132 @@ def get_relay_history(relay_number, hours=24):
         for ts, status, reason in results
     ]
 
+# Sensoren van de grote tank
+BIG_TANK_SENSORS = [
+    "28-0b24a0539bdb",  # B - boven
+    "28-0b24a0545ad2",  # C - midden
+    "28-0b24a0507904",  # D - onder
+]
+
+def get_big_tank_average_series(hours=48):
+    """
+    Haal de gemiddelde temperatuur van de grote tank op per meting.
+    Groepeert metingen die op hetzelfde tijdstip (binnen ~1 min) zijn genomen.
+    Retourneert een lijst van (datetime, gemiddelde_temp).
+    """
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    since_time = datetime.now() - timedelta(hours=hours)
+
+    placeholders = ",".join("?" * len(BIG_TANK_SENSORS))
+    c.execute(f'''
+        SELECT timestamp, sensor_id, temperature
+        FROM sensor_readings
+        WHERE sensor_id IN ({placeholders})
+          AND timestamp > ?
+        ORDER BY timestamp
+    ''', (*BIG_TANK_SENSORS, since_time))
+
+    rows = c.fetchall()
+    conn.close()
+
+    # Groepeer per timestamp (string, seconde-precisie is genoeg)
+    from collections import defaultdict
+    buckets = defaultdict(dict)
+    for ts, sid, temp in rows:
+        buckets[ts][sid] = temp
+
+    series = []
+    for ts, sensor_temps in buckets.items():
+        # Alleen meenemen als we van alle 3 sensoren een waarde hebben
+        if len(sensor_temps) == len(BIG_TANK_SENSORS):
+            avg = sum(sensor_temps.values()) / len(sensor_temps)
+            try:
+                dt = datetime.strptime(ts, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                continue
+            series.append((dt, avg))
+
+    series.sort(key=lambda x: x[0])
+    return series
+
+
+def estimate_cooling(series, ambient=20.0):
+    """
+    Schat de afkoelcoëfficiënt k met lineaire regressie op:
+        ln(T - T_omgeving) = ln(T0 - T_omgeving) - k * t
+    Retourneert (k, T0_estimate) of None als er onvoldoende data is.
+    """
+    if len(series) < 5:
+        return None
+
+    # Alleen metingen meenemen die duidelijk boven omgevingstemperatuur zitten
+    t0 = series[0][0]
+    xs, ys = [], []
+    for dt, temp in series:
+        dt_hours = (dt - t0).total_seconds() / 3600.0
+        delta = temp - ambient
+        if delta <= 1.0:   # te dicht bij omgeving -> ruis
+            continue
+        xs.append(dt_hours)
+        ys.append(math.log(delta))
+
+    if len(xs) < 5:
+        return None
+
+    n = len(xs)
+    mean_x = sum(xs) / n
+    mean_y = sum(ys) / n
+    num = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
+    den = sum((x - mean_x) ** 2 for x in xs)
+    if den == 0:
+        return None
+
+    slope = num / den              # = -k
+    intercept = mean_y - slope * mean_x
+    k = -slope
+    if k <= 0:
+        return None                # geen afkoeling -> onbruikbaar
+
+    T0 = ambient + math.exp(intercept)
+    return k, T0
+
+
+def predict_cooling_time(hours=48, ambient=20.0, start_temp=None, target_temp=30.0):
+    """
+    Voorspel hoe lang het duurt voordat de grote tank (gemiddeld)
+    van start_temp naar target_temp afkoelt.
+    """
+    series = get_big_tank_average_series(hours=hours)
+    result = estimate_cooling(series, ambient=ambient)
+    if not result:
+        return None
+
+    k, T0_fit = result
+
+    # Als start_temp niet opgegeven: gebruik de laatste meting
+    if start_temp is None:
+        start_temp = series[-1][1] if series else T0_fit
+
+    # Newton: t = ln((T_start - T_omg) / (T_target - T_omg)) / k
+    if start_temp <= target_temp or target_temp <= ambient:
+        return None
+
+    delta_start = start_temp - ambient
+    delta_target = target_temp - ambient
+    t_hours = math.log(delta_start / delta_target) / k
+
+    return {
+        'k': k,
+        'T0_fit': round(T0_fit, 1),
+        'start_temp': round(start_temp, 1),
+        'target_temp': target_temp,
+        'ambient': ambient,
+        'hours': round(t_hours, 1),
+        'current_avg': round(series[-1][1], 1) if series else None,
+        'samples': len(series),
+    }
+
 
 class SensorHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -117,6 +244,8 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.serve_api_history()
         elif self.path.startswith('/api/relay_history/'):
             self.serve_api_relay_history()
+        elif self.path.startswith('/api/cooling'):
+            self.serve_api_cooling()
         else:
             self.send_error(404)
     
@@ -272,8 +401,44 @@ class SensorHandler(BaseHTTPRequestHandler):
         html += """
     </table>
     
-    <br><br><h1>Pompen</h1><br>
+    <br><br>
+
+    # Afkoelvoorspelling grote tank
+    cooling = predict_cooling_time(ambient=20.0, target_temp=30.0)
+    if cooling:
+        cooling_html = f"""
+        <h1>Afkoeling grote tank</h1>
+        <table>
+            <tr>
+                <td>Huidig gemiddelde</td>
+                <td>{cooling['current_avg']} &deg;C</td>
+            </tr>
+            <tr>
+                <td>Tijd tot {cooling['target_temp']:.0f} &deg;C</td>
+                <td><strong>{cooling['hours']} uur</strong></td>
+            </tr>
+            <tr>
+                <td>Afkoelcoëfficiënt k</td>
+                <td>{cooling['k']:.5f} /uur</td>
+            </tr>
+            <tr>
+                <td>Gebaseerd op</td>
+                <td>{cooling['samples']} metingen</td>
+            </tr>
+        </table>
+        """
+    else:
+        cooling_html = """
+        <h1>Afkoeling grote tank</h1>
+        <p><em>Onvoldoende data (min. 5 metingen met alle 3 sensoren boven omgevingstemperatuur nodig).</em></p>
+        """
+
+    html += cooling_html
+
+    <br><br>
+
     <table>
+        <tr><h1>Pompen</h1></tr>
         <tr>"""
         html += f"""
         <tr class="{'relay-on' if relay_status[1]['status'] else 'relay-off'}">
@@ -375,6 +540,25 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(history, indent=2).encode())
         except:
             self.send_error(400)
+
+    def serve_api_cooling(self):
+        # Optioneel: ?target=30&ambient=20
+        from urllib.parse import urlparse, parse_qs
+        qs = parse_qs(urlparse(self.path).query)
+        target = float(qs.get('target', ['30'])[0])
+        ambient = float(qs.get('ambient', ['20'])[0])
+    
+        prediction = predict_cooling_time(ambient=ambient, target_temp=target)
+
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        if prediction:
+            self.wfile.write(json.dumps(prediction, indent=2).encode())
+        else:
+            self.wfile.write(json.dumps(
+                {'error': 'Onvoldoende data of geen afkoeling gemeten'}
+            ).encode())
 
 if __name__ == '__main__':
     print("Web Interface gestart op http://0.0.0.0:80 (Threading)")
